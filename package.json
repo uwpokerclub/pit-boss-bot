@@ -1,0 +1,35 @@
+{
+  "name": "pit-boss-bot",
+  "version": "0.0.1",
+  "description": "A Discord bot for the University Of Waterloo Poker Studies Club",
+  "main": "dist/src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node dist/src/index.js"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uwpokerclub/pit-boss-bot.git"
+  },
+  "author": "University of Waterloo Poker Studies Club Development Team (uwaterloopoker@gmail.com)",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/uwpokerclub/pit-boss-bot/issues"
+  },
+  "homepage": "https://github.com/uwpokerclub/pit-boss-bot#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.11.1",
+    "@types/eslint__js": "^8.42.3",
+    "@types/eslint-config-prettier": "^6.11.3",
+    "eslint": "^9.11.1",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.9.0",
+    "prettier": "3.3.3",
+    "typescript": "^5.6.2",
+    "typescript-eslint": "^8.7.0"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.2"
+  }
+}
