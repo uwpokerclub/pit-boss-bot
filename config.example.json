@@ -1,3 +1,5 @@
 {
-  "token": "BOT_TOKEN_HERE"
+  "token": "BOT_TOKEN_HERE",
+  "clientId": "BOT_CLIENT_ID_HERE",
+  "guildId": "SERVER_ID_HERE"
 }

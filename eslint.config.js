@@ -11,13 +11,15 @@ export default tseslint.config(
   ...tseslint.configs.stylistic,
   eslintConfigPrettier,
   {
-    ignores: ["./dist/**/*"],
+    ignores: ["**/dist/**/*"],
+  },
+  {
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",
       globals: {
         ...globals.node,
-      }
-    }
+      },
+    },
   }
 );
