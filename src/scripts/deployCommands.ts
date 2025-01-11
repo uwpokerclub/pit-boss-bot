@@ -1,5 +1,5 @@
 import { REST, Routes } from "discord.js";
-import config from "../config.json" assert { type: "json" };
+import config from "../../config.json" with { type: "json" };
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -26,7 +26,6 @@ for (const folder of commandFolders) {
     commands.push(command.default.data.toJSON());
   }
 }
-
 const rest = new REST().setToken(config.token);
 
 (async () => {

@@ -5,7 +5,10 @@
   "main": "dist/src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node dist/src/index.js"
+    "clean": "rm -r dist",
+    "build": "tsc --build",
+    "start": "npm run clean && npm run build && node dist/src/index.js",
+    "startNoClean": "npm run build && node dist/src/index.js"
   },
   "type": "module",
   "repository": {
@@ -30,6 +33,7 @@
     "typescript-eslint": "^8.7.0"
   },
   "dependencies": {
-    "discord.js": "^14.16.2"
+    "discord.js": "^14.17.2",
+    "glob": "^11.0.0"
   }
 }

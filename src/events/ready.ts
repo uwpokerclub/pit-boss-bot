@@ -1,15 +1,44 @@
-import { Events } from "discord.js";
+import { Collection, Events, REST, Routes } from "discord.js";
+import type BossClient from "../base/classes/BossClient.js";
+import Event from "../base/classes/Event.js";
+import type Command from "../base/classes/Command.js";
 
-import type { Client } from "discord.js";
-import type { EventHandler } from "../types/event.d.ts";
+export default class Ready extends Event {
+  constructor(client: BossClient) {
+    super(client, {
+      name: Events.ClientReady,
+      description: "Ready event",
+      once: true,
+    });
+  }
 
-const ReadyEventHandler: EventHandler = {
-  name: Events.ClientReady,
-  once: true,
-  execute(client: Client) {
-    // TODO: implement some sort of logger and remove console.log
-    console.log(`Ready! Logged in as ${client.user?.tag}`);
+  override async execute() {
+    console.log(`${this.client.user?.tag} is now ready`);
+
+    // commands do not have to be registered every time the bot is deployed
+    // however, this should not be an issue in the short term
+    // dedicated register script can be found in the scripts folder
+    const commands: object[] = this.getJson(this.client.commands);
+    const rest: REST = new REST().setToken(this.client.config.token);
+    const setCommands: any = await rest.put(Routes.applicationGuildCommands(this.client.config.clientId, this.client.config.guildId), {
+      body: commands
+    });
+
+    console.log(`Successfully set ${setCommands.length} commands`);
+  }
+
+
+  private getJson(commands: Collection<string, Command>): object[] {
+    const data: object[] = [];
+    commands.forEach(command => {
+      data.push({
+        name: command.name,
+        description: command.description,
+        options: command.options,
+        default_member_permissions: command.defaultMemberPerm.toString(),
+        dm_permission: command.dmPerm,
+      });
+    });
+    return data;
   }
 }
-
-export default ReadyEventHandler;
