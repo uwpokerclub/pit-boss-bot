@@ -9,6 +9,7 @@ export default class Test extends Command {
             name: "test",
             description: "Tests bot's responsiveness",
             category: Category.Utility,
+            syntax: "/help",
             helpDescription: "",
             defaultMemberPerm: PermissionFlagsBits.UseApplicationCommands,
             dmPerm: false,

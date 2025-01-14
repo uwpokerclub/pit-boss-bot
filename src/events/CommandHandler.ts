@@ -13,14 +13,14 @@ export default class CommandHandler extends Event {
     }
 
     override execute(interaction: ChatInputCommandInteraction) {
-        if (!interaction.isChatInputCommand) {
+        if (!interaction.isChatInputCommand()) {
             return;
         }
 
         const command: Command = this.client.commands.get(interaction.commandName)!;
         
         if (!command) {
-            interaction.reply({ content: "This command does not exist", ephemeral: true });
+            interaction.reply({ content: `This command does not exist}`, ephemeral: true });
             this.client.commands.delete(interaction.commandName);
             return;
         }
@@ -33,7 +33,7 @@ export default class CommandHandler extends Event {
         const now: number = Date.now();
         const timestamps: Collection<string, number> = coolDowns.get(command.name)!;
         // if the command somehow has a coolDown value of 0, use 3 seconds instead
-        const coolDownAmount = (command.coolDown || 3) * 100;
+        const coolDownAmount = (command.coolDown || 3) * 1000;
 
         const userId: string = interaction.user.id;
         if (timestamps.has(userId) && (now < timestamps.get(userId)! + coolDownAmount)) {
