@@ -12,7 +12,7 @@ export default class BrevoClient extends TransactionalEmailsApi {
     
     init(): void {
         let apiKey = this.authentications['apiKey'];
-        apiKey.apiKey = this.client.config.brevoKey;
+        apiKey.apiKey = this.client.config.brevo.brevoKey;
     }
 
 
@@ -24,7 +24,7 @@ export default class BrevoClient extends TransactionalEmailsApi {
         `<html><body><p>Please click on the "Enter verification code" button in the discord reply and enter this code</p><br>
         <h3>{{ params.verificationCode }}</h3><br> 
         <p>Do NOT share this code with anyone else.</p></body></html>`;
-        sendSmtpEmail.sender = { "email": this.client.config.authEmailAddress };
+        sendSmtpEmail.sender = { "email": this.client.config.brevo.authEmailAddress };
         sendSmtpEmail.to = [{ "email": emailAddress }];
         sendSmtpEmail.headers = { "Some-Custom-Name": "unique-id-1234" };
         sendSmtpEmail.params = { "verificationCode": verificationCode };

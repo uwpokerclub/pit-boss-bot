@@ -60,6 +60,7 @@ export default class UserLogin extends Command {
                 await this.displayVerificationModal(buttonInteraction);
                 if (this.verifyCode()) {
                     interaction.editReply({ content: `**Verification successful**. Your discord account is now linked to the email ${this.modalInputEmail}!`, components: []})
+                    //TODO: assign user a custom role for accessing the ranking commands
                 } else {
                     interaction.editReply({ content: `**Verification failed**. Please try entering the email or the verification code again.`, components: [buttonRow]});
                 }
