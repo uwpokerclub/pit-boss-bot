@@ -5,7 +5,9 @@ import SubCommand from "./SubCommand.js";
 import Handler from "./Handler.js";
 import { createRequire } from "node:module";
 import path from "node:path";
+import BrevoClient from "./BrevoClient.js";
 const require = createRequire(import.meta.url);
+
 
 export default class BossClient extends Client {
     config: IConfig;
@@ -13,6 +15,7 @@ export default class BossClient extends Client {
     commands: Collection<string, Command>;
     subCommands: Collection<string, SubCommand>;
     coolDowns: Collection<string, Collection<string, number>>;
+    brevoClient: BrevoClient;
 
     constructor() {
         super({ intents: [] });
@@ -22,6 +25,7 @@ export default class BossClient extends Client {
         this.commands = new Collection();
         this.subCommands = new Collection();
         this.coolDowns = new Collection();
+        this.brevoClient = new BrevoClient(this);
     }
 
     init(): void {
@@ -34,6 +38,7 @@ export default class BossClient extends Client {
     loadHandler(): void {
         this.handler.loadEvents();
         this.handler.loadCommands();
+        this.brevoClient.init();
     }
 
 }

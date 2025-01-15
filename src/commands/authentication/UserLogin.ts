@@ -6,7 +6,8 @@ import Command from "../../base/classes/Command.js";
 
 
 export default class UserLogin extends Command {
-    email: string;
+    modalInputEmail: string;
+    modalInputVerificationCode: string;
 
     constructor(client: BossClient) {
         super(client, {
@@ -20,7 +21,8 @@ export default class UserLogin extends Command {
             coolDown: 3,
             options: []
         });
-        this.email = "";
+        this.modalInputEmail = "";
+        this.modalInputVerificationCode = "";
     }
 
 
@@ -39,17 +41,28 @@ export default class UserLogin extends Command {
         const buttonRow: ActionRowBuilder<ButtonBuilder> = new ActionRowBuilder<ButtonBuilder>();
         buttonRow.addComponents(loginWithEmailButton, verificationButton);
 
-        const response: InteractionResponse<boolean> = await interaction.reply({content: "welcome and description text placeholder", components: [buttonRow], ephemeral: true});
+        //TODO: change this to the proper message
+        const response: InteractionResponse<boolean> = await interaction.reply({ content: `welcome and description text placeholder`, components: [buttonRow], ephemeral: true });
         const collector = response.createMessageComponentCollector({componentType: ComponentType.Button, time: 600000});
         collector.on("collect", async (buttonInteraction) => {
             if (buttonInteraction.customId == "logInWithEmail") {
                 await this.displayLogInWithEmailModal(buttonInteraction);
                 if (this.isExistingEmail()) {
+                    // enable the verification button
                     buttonRow.components[1]?.setDisabled(false);
-                    interaction.editReply({ content: "Click a button", components: [buttonRow] });
+                    interaction.editReply({ content: `Please check ${this.modalInputEmail} for the verification code we just sent you.`, components: [buttonRow] });
+                    this.generateCode();
+                } else {
+                    buttonRow.components[1]?.setDisabled(true);
+                    interaction.editReply({ content: "**We couldn't find the email address in our system. Please try again.**", components: [buttonRow] });
                 }
             } else if (buttonInteraction.customId == "verification") {
-                this.displayVerificationModal(buttonInteraction);
+                await this.displayVerificationModal(buttonInteraction);
+                if (this.verifyCode()) {
+                    interaction.editReply({ content: `**Verification successful**. Your discord account is now linked to the email ${this.modalInputEmail}!`, components: []})
+                } else {
+                    interaction.editReply({ content: `**Verification failed**. Please try entering the email or the verification code again.`, components: [buttonRow]});
+                }
             }
         })
     }
@@ -78,14 +91,15 @@ export default class UserLogin extends Command {
         // wait for the modal submission
         const filter = (interaction: ModalSubmitInteraction) => interaction.customId == `Login-${interaction.user.id}`;
         await interaction.awaitModalSubmit({filter: filter, time: 600000})
-        .then((modalInteraction) => {
-            this.email = modalInteraction.fields.getTextInputValue("emailInput");
-            modalInteraction.reply({content: `received email address: ${this.email}`, ephemeral: true});
+        .then(async (modalInteraction) => {
+            this.modalInputEmail = modalInteraction.fields.getTextInputValue("emailInput");
+            await modalInteraction.reply({content: `received email address: ${this.modalInputEmail}`, ephemeral: true});
+            modalInteraction.deleteReply();
         })
         .catch((err) => {
             console.log(err);
             return;
-        });    
+        });
         
     }
     
@@ -110,9 +124,10 @@ export default class UserLogin extends Command {
         // wait for the modal submission
         const filter = (interaction: ModalSubmitInteraction) => interaction.customId == `verification-${interaction.user.id}`;
         await interaction.awaitModalSubmit({filter: filter, time: 600000})
-        .then((modalInteraction) => {
-            const code = modalInteraction.fields.getTextInputValue("verificationCodeInput");
-            modalInteraction.reply({content: `received code address: ${code}`, ephemeral: true});
+        .then(async (modalInteraction) => {
+            this.modalInputVerificationCode = modalInteraction.fields.getTextInputValue("verificationCodeInput");
+            await modalInteraction.reply({content: `received code: ${this.modalInputVerificationCode}`, ephemeral: true});
+            modalInteraction.deleteReply();
         })
         .catch((err) => {
             console.log(err);
@@ -120,12 +135,25 @@ export default class UserLogin extends Command {
         });    
     }
 
+    private generateCode(): void {
+        // generate 6-digit code from 100000 to 999999
+        const generatedCode: number = Math.floor(Math.random() * (999999 - 100000 + 1) + 100000);
+        this.client.brevoClient.sendVerificationEmail(this.modalInputEmail, generatedCode.toString());
+        //TODO: insert into db
+    }
+
 
     private isExistingEmail(): boolean {
         // TODO: check database to see if the email address exists or not
-        if (this.email) {
+        if (this.modalInputEmail) {
             return true;
         } 
         return false;
+    }
+
+
+    private verifyCode(): boolean {
+        //TODO: change this
+        return true;
     }
 }
