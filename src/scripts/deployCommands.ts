@@ -1,48 +1,50 @@
+import { glob } from "glob";
+import path from "path";
+import type Command from "../base/classes/Command.js";
+import type SubCommand from "../base/classes/SubCommand.js";
+import BossClient from "../base/classes/BossClient.js";
 import { REST, Routes } from "discord.js";
-import config from "../../config.json" with { type: "json" };
-import * as fs from "node:fs";
-import * as path from "node:path";
-import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
 
-import type { RESTPostAPIChatInputApplicationCommandsJSONBody } from "discord.js";
 
-// Array to hold all slash command data
-const commands: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
-
-// Get path to the commands folder
-const dirname = path.dirname(fileURLToPath(import.meta.url));
-const foldersPath = path.join(dirname, "commands");
-const commandFolders = fs.readdirSync(foldersPath);
-
-// Load command data into commands array
-for (const folder of commandFolders) {
-  const commandsPath = path.join(foldersPath, folder);
-  const commandFiles = fs
-    .readdirSync(commandsPath)
-    .filter((file) => file.endsWith(".js"));
-  for (const file of commandFiles) {
-    const filePath = path.join(commandsPath, file);
-    const command = await import(filePath);
-    commands.push(command.default.data.toJSON());
-  }
+function getJson(command: Command): object {
+  return {
+    name: command.name,
+    description: command.description,
+    options: command.options,
+    default_member_permissions: command.defaultMemberPerm.toString(),
+    dm_permission: command.dmPerm,
+  };
 }
-const rest = new REST().setToken(config.token);
 
-(async () => {
-  try {
-    console.log(
-      `Started refreshing ${commands.length} application (/) commands.`
-    );
 
-    // Refresh all commands in the guild with the current set
-    const data = await rest.put(Routes.applicationGuildCommands(config.clientId, config.guildId), {
-      body: commands,
-    });
+// FIX: instantiating a client here is probably inefficient
+const dummyClient: BossClient = new BossClient()
+const commands: object[] = [];
+const files = (await glob(`dist/src/commands/**/*.js`)).map((filePath: string) => path.resolve(filePath));
 
-    console.log(
-      `Successfully reloaded ${(data as Record<string, unknown>[]).length} application commands.`
-    );
-  } catch (err) {
-    console.error(err);
+await Promise.all(files.map(async (file: string) => {
+  //construct new instance of Command | SubCommand of the file
+    const command: Command | SubCommand = new (await import(file)).default(dummyClient);
+    
+    if (!command.name) {
+        return delete require.cache[require.resolve(file)] && console.log(`${file.split("/").pop()} does not have a name.`);
+    }
+    
+    // filters out all the subCommands
+    if (!(file.split("/").pop()?.split(".")[2])) {
+      commands.push(getJson(command as Command));
+    }
+    
+    return delete require.cache[require.resolve(file)]
   }
-})();
+));
+
+
+const rest: REST = new REST().setToken(dummyClient.config.token);
+const setCommands: any = await rest.put(Routes.applicationGuildCommands(dummyClient.config.clientId, dummyClient.config.guildId), {
+  body: commands
+});
+
+console.log(`Successfully set ${setCommands.length} commands`);

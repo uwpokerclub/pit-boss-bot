@@ -2,6 +2,8 @@
   "token": "BOT_TOKEN_HERE", 
   "clientId": "BOT_CLIENT_ID_HERE",
   "guildId": "SERVER_ID_HERE",
-  "brevoKey": "BREVO_API_KEY_HERE",
-  "authEmailAddress" : "EMAIL_ADDRESS_FOR_SENDING_AUTHENTICATION_CODE_HERE"
+  "brevo": {
+    "brevoKey": "BREVO_API_KEY_HERE",
+    "authEmailAddress" : "EMAIL_ADDRESS_FOR_SENDING_AUTHENTICATION_CODE_HERE"
+  }
 }
