@@ -5,8 +5,10 @@ import Category from "../../base/enums/Category.js";
 import Command from "../../base/classes/Command.js";
 import { ClientEmail } from "../../base/db/models/ClientEmail.js";
 import { ClientCode } from "../../base/db/models/ClientCode.js";
+import { sendVerificationEmail } from "../../base/classes/BrevoClient.js";
 
 
+const emailRegExp: RegExp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 export default class UserLogin extends Command {
     modalInputEmail: string;
     modalInputVerificationCode: string;
@@ -29,6 +31,8 @@ export default class UserLogin extends Command {
 
 
     override async execute(interaction: ChatInputCommandInteraction) {
+        // TODO: Check user roles. If the user has the "logged in" role, then reply to the command with "you are already logged in, to link your discord account to another email, try /logout first"
+
         const loginWithEmailButton: ButtonBuilder = new ButtonBuilder()
         .setCustomId('logInWithEmail')
         .setLabel('Log in with email')
@@ -67,7 +71,7 @@ export default class UserLogin extends Command {
             else if (buttonInteraction.customId == "verification") {
                 await this.displayVerificationModal(buttonInteraction);
                 if (await this.verifyCode(buttonInteraction.user.id)) {
-                    interaction.editReply({ content: `**Verification successful**. Your discord account is now linked to the email ${this.modalInputEmail}!`, components: []});
+                    interaction.editReply({ content: `**Verification successful**. Your discord account is now linked to ${this.modalInputEmail}!`, components: []});
                     await ClientEmail.create({ discord_client_id: buttonInteraction.user.id, email: this.modalInputEmail});
                     await ClientCode.destroy({where: {discord_client_id: buttonInteraction.user.id}});
                     //TODO: assign user a custom role for accessing the ranking commands
@@ -150,7 +154,13 @@ export default class UserLogin extends Command {
     private async distributeCode(clientId: string) {
         // generate 6-digit code from 100000 to 999999
         const generatedCode: number = Math.floor(Math.random() * (999999 - 100000 + 1) + 100000);
-        this.client.brevoClient.sendVerificationEmail(this.modalInputEmail, generatedCode.toString());
+        //TODO: try-catch send email to prevent invalid email address
+        try {
+            sendVerificationEmail(this.client.config, this.modalInputEmail, generatedCode.toString());
+        } catch (err) {
+            console.log(err);
+        }
+        
         await ClientCode.destroy({where: {discord_client_id: clientId}});
         await ClientCode.create({ discord_client_id: clientId, code: generatedCode.toString()});
     }
@@ -158,7 +168,9 @@ export default class UserLogin extends Command {
 
     private isExistingEmail(): boolean {
         // TODO: check database to see if the email address exists or not
-        // TODO: also catch if email doesn't exist in general, invalid address
+        if (!emailRegExp.test(this.modalInputEmail)) {
+            return false;
+        }
         if (this.modalInputEmail) {
             return true;
         } 
