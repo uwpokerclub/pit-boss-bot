@@ -5,7 +5,7 @@ import SubCommand from "./SubCommand.js";
 import Handler from "./Handler.js";
 import { createRequire } from "node:module";
 import path from "node:path";
-import BrevoClient from "./BrevoClient.js";
+import { brevoInit } from "./BrevoClient.js";
 import {  sqliteDBInit } from "../db/sqliteDB.js";
 const require = createRequire(import.meta.url);
 
@@ -16,7 +16,6 @@ export default class BossClient extends Client {
     commands: Collection<string, Command>;
     subCommands: Collection<string, SubCommand>;
     coolDowns: Collection<string, Collection<string, number>>;
-    brevoClient: BrevoClient;
 
     constructor() {
         super({ intents: [] });
@@ -26,12 +25,12 @@ export default class BossClient extends Client {
         this.commands = new Collection();
         this.subCommands = new Collection();
         this.coolDowns = new Collection();
-        this.brevoClient = new BrevoClient(this);
     }
 
     init(): void {
         this.loadHandler();
         sqliteDBInit();
+        brevoInit(this.config);
         //TODO: change the log dest 
         this.login(this.config.token)
             .catch((err) => console.log(err));
@@ -40,7 +39,6 @@ export default class BossClient extends Client {
     loadHandler(): void {
         this.handler.loadEvents();
         this.handler.loadCommands();
-        this.brevoClient.init();
     }
 
 }
