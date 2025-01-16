@@ -3,6 +3,8 @@ import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatIn
 import type BossClient from "../../base/classes/BossClient.js";
 import Category from "../../base/enums/Category.js";
 import Command from "../../base/classes/Command.js";
+import { ClientEmail } from "../../base/db/models/ClientEmail.js";
+import { ClientCode } from "../../base/db/models/ClientCode.js";
 
 
 export default class UserLogin extends Command {
@@ -40,26 +42,34 @@ export default class UserLogin extends Command {
 
         const buttonRow: ActionRowBuilder<ButtonBuilder> = new ActionRowBuilder<ButtonBuilder>();
         buttonRow.addComponents(loginWithEmailButton, verificationButton);
-
         //TODO: change this to the proper message
         const response: InteractionResponse<boolean> = await interaction.reply({ content: `welcome and description text placeholder`, components: [buttonRow], ephemeral: true });
-        const collector = response.createMessageComponentCollector({componentType: ComponentType.Button, time: 600000});
+        
+        // client has 10 minutes to complete the login process
+        const validTime: number = 600000;
+        setTimeout(() => {interaction.editReply({ content: `Command timed out`})}, validTime);
+        const collector = response.createMessageComponentCollector({componentType: ComponentType.Button, time: validTime});
         collector.on("collect", async (buttonInteraction) => {
+
             if (buttonInteraction.customId == "logInWithEmail") {
                 await this.displayLogInWithEmailModal(buttonInteraction);
                 if (this.isExistingEmail()) {
                     // enable the verification button
                     buttonRow.components[1]?.setDisabled(false);
+                    this.distributeCode(buttonInteraction.user.id);
                     interaction.editReply({ content: `Please check ${this.modalInputEmail} for the verification code we just sent you.`, components: [buttonRow] });
-                    this.generateCode();
                 } else {
                     buttonRow.components[1]?.setDisabled(true);
                     interaction.editReply({ content: "**We couldn't find the email address in our system. Please try again.**", components: [buttonRow] });
                 }
-            } else if (buttonInteraction.customId == "verification") {
+            } 
+            
+            else if (buttonInteraction.customId == "verification") {
                 await this.displayVerificationModal(buttonInteraction);
-                if (this.verifyCode()) {
-                    interaction.editReply({ content: `**Verification successful**. Your discord account is now linked to the email ${this.modalInputEmail}!`, components: []})
+                if (await this.verifyCode(buttonInteraction.user.id)) {
+                    interaction.editReply({ content: `**Verification successful**. Your discord account is now linked to the email ${this.modalInputEmail}!`, components: []});
+                    await ClientEmail.create({ discord_client_id: buttonInteraction.user.id, email: this.modalInputEmail});
+                    await ClientCode.destroy({where: {discord_client_id: buttonInteraction.user.id}});
                     //TODO: assign user a custom role for accessing the ranking commands
                 } else {
                     interaction.editReply({ content: `**Verification failed**. Please try entering the email or the verification code again.`, components: [buttonRow]});
@@ -94,7 +104,7 @@ export default class UserLogin extends Command {
         await interaction.awaitModalSubmit({filter: filter, time: 600000})
         .then(async (modalInteraction) => {
             this.modalInputEmail = modalInteraction.fields.getTextInputValue("emailInput");
-            await modalInteraction.reply({content: `received email address: ${this.modalInputEmail}`, ephemeral: true});
+            await modalInteraction.reply({content: `.`, ephemeral: true});
             modalInteraction.deleteReply();
         })
         .catch((err) => {
@@ -127,7 +137,7 @@ export default class UserLogin extends Command {
         await interaction.awaitModalSubmit({filter: filter, time: 600000})
         .then(async (modalInteraction) => {
             this.modalInputVerificationCode = modalInteraction.fields.getTextInputValue("verificationCodeInput");
-            await modalInteraction.reply({content: `received code: ${this.modalInputVerificationCode}`, ephemeral: true});
+            await modalInteraction.reply({content: `.`, ephemeral: true});
             modalInteraction.deleteReply();
         })
         .catch((err) => {
@@ -136,16 +146,19 @@ export default class UserLogin extends Command {
         });    
     }
 
-    private generateCode(): void {
+
+    private async distributeCode(clientId: string) {
         // generate 6-digit code from 100000 to 999999
         const generatedCode: number = Math.floor(Math.random() * (999999 - 100000 + 1) + 100000);
         this.client.brevoClient.sendVerificationEmail(this.modalInputEmail, generatedCode.toString());
-        //TODO: insert into db
+        await ClientCode.destroy({where: {discord_client_id: clientId}});
+        await ClientCode.create({ discord_client_id: clientId, code: generatedCode.toString()});
     }
 
 
     private isExistingEmail(): boolean {
         // TODO: check database to see if the email address exists or not
+        // TODO: also catch if email doesn't exist in general, invalid address
         if (this.modalInputEmail) {
             return true;
         } 
@@ -153,8 +166,13 @@ export default class UserLogin extends Command {
     }
 
 
-    private verifyCode(): boolean {
-        //TODO: change this
-        return true;
+    private async verifyCode(clientId: string): Promise<boolean> {
+        const code = (await ClientCode.findAll({
+            where: {
+                discord_client_id: clientId,
+            },
+        }))[0]?.dataValues.code;
+
+        return this.modalInputVerificationCode == code;
     }
 }

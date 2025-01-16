@@ -6,6 +6,7 @@ import Handler from "./Handler.js";
 import { createRequire } from "node:module";
 import path from "node:path";
 import BrevoClient from "./BrevoClient.js";
+import {  sqliteDBInit } from "../db/sqliteDB.js";
 const require = createRequire(import.meta.url);
 
 
@@ -30,6 +31,7 @@ export default class BossClient extends Client {
 
     init(): void {
         this.loadHandler();
+        sqliteDBInit();
         //TODO: change the log dest 
         this.login(this.config.token)
             .catch((err) => console.log(err));

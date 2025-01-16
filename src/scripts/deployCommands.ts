@@ -20,7 +20,7 @@ function getJson(command: Command): object {
 
 
 // FIX: instantiating a client here is probably inefficient
-const dummyClient: BossClient = new BossClient()
+const dummyClient: BossClient = new BossClient();
 const commands: object[] = [];
 const files = (await glob(`dist/src/commands/**/*.js`)).map((filePath: string) => path.resolve(filePath));
 
@@ -37,7 +37,7 @@ await Promise.all(files.map(async (file: string) => {
       commands.push(getJson(command as Command));
     }
     
-    return delete require.cache[require.resolve(file)]
+    return delete require.cache[require.resolve(file)];
   }
 ));
 
