@@ -1,5 +1,5 @@
 //@ts-ignore
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, ComponentType, InteractionResponse, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, TextInputBuilder, TextInputStyle} from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, ComponentType, Guild, GuildMember, GuildMemberManager, GuildMemberRoleManager, InteractionResponse, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, Role, TextInputBuilder, TextInputStyle} from "discord.js";
 import type BossClient from "../../base/classes/BossClient.js";
 import Category from "../../base/enums/Category.js";
 import Command from "../../base/classes/Command.js";
@@ -9,9 +9,13 @@ import { sendVerificationEmail } from "../../base/classes/BrevoClient.js";
 
 
 const emailRegExp: RegExp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+
+
+
 export default class UserLogin extends Command {
     modalInputEmail: string;
     modalInputVerificationCode: string;
+
 
     constructor(client: BossClient) {
         super(client, {
@@ -31,7 +35,12 @@ export default class UserLogin extends Command {
 
 
     override async execute(interaction: ChatInputCommandInteraction) {
-        // TODO: Check user roles. If the user has the "logged in" role, then reply to the command with "you are already logged in, to link your discord account to another email, try /logout first"
+        const verifiedRole: Role = (await interaction.guild?.roles.fetch(this.client.config.verifiedRoleId))!;
+        if (verifiedRole.members.has(interaction.user.id)) {
+            interaction.reply({ content: "Your account is already linked to an email in our system. To link your discord account to another email address, call `/logout` first.", ephemeral: true });
+            return;
+        }
+
 
         const loginWithEmailButton: ButtonBuilder = new ButtonBuilder()
         .setCustomId('logInWithEmail')
@@ -71,10 +80,10 @@ export default class UserLogin extends Command {
             else if (buttonInteraction.customId == "verification") {
                 await this.displayVerificationModal(buttonInteraction);
                 if (await this.verifyCode(buttonInteraction.user.id)) {
-                    interaction.editReply({ content: `**Verification successful**. Your discord account is now linked to ${this.modalInputEmail}!`, components: []});
                     await ClientEmail.create({ discord_client_id: buttonInteraction.user.id, email: this.modalInputEmail});
                     await ClientCode.destroy({where: {discord_client_id: buttonInteraction.user.id}});
-                    //TODO: assign user a custom role for accessing the ranking commands
+                    this.assignVerifiedRole(interaction);
+                    interaction.editReply({ content: `**Verification successful**. Your discord account is now linked to ${this.modalInputEmail}!`, components: []});
                 } else {
                     interaction.editReply({ content: `**Verification failed**. Please try entering the email or the verification code again.`, components: [buttonRow]});
                 }
@@ -186,5 +195,12 @@ export default class UserLogin extends Command {
         }))[0]?.dataValues.code;
 
         return this.modalInputVerificationCode == code;
+    }
+
+
+    private async assignVerifiedRole(interaction: ChatInputCommandInteraction) {
+        const verifiedRole: Role = (await interaction.guild?.roles.fetch(this.client.config.verifiedRoleId))!;
+        const member: GuildMember = (await interaction.guild?.members.fetch(interaction.user.id))!;
+        (member.roles as GuildMemberRoleManager).add(verifiedRole);
     }
 }
