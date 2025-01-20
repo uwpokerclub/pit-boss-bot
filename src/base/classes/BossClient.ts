@@ -1,4 +1,4 @@
-import { Client, Collection } from "discord.js";
+import { Client, Collection, GatewayIntentBits } from "discord.js";
 import type IConfig from "../interfaces/IConfig.js";
 import Command from "./Command.js";
 import SubCommand from "./SubCommand.js";
@@ -18,7 +18,10 @@ export default class BossClient extends Client {
     coolDowns: Collection<string, Collection<string, number>>;
 
     constructor() {
-        super({ intents: [] });
+        super({ intents: [
+            GatewayIntentBits.Guilds,
+            GatewayIntentBits.GuildMessages,
+        ] });
 
         this.config = require(path.resolve("./config.json"));
         this.handler = new Handler(this);
