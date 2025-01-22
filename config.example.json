@@ -1,10 +1,18 @@
 {
-  "token": "BOT_TOKEN_HERE", 
-  "clientId": "BOT_CLIENT_ID_HERE",
-  "guildId": "SERVER_ID_HERE",
-  "verifiedRoleId": "VERIFIED_ROLE_ID_HERE",
+  "discord": {
+    "token": "BOT_TOKEN_HERE", 
+    "clientId": "BOT_CLIENT_ID_HERE",
+    "guildId": "SERVER_ID_HERE",
+    "verifiedRoleId": "VERIFIED_ROLE_ID_HERE"
+  },
   "brevo": {
     "brevoKey": "BREVO_API_KEY_HERE",
     "authEmailAddress" : "EMAIL_ADDRESS_FOR_SENDING_AUTHENTICATION_CODE_HERE"
+  },
+  "uwpsc": {
+      "apiUrl": "BACKEND_URL_HERE",
+      "cookieName": "AUTH_COOKIE_NAME_HERE",
+      "username": "API_CRED_USERNAME_HERE", 
+      "password": "API_CRED_PASSWORD_HERE"
   }
 }

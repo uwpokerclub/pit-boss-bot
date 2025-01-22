@@ -5,8 +5,9 @@ import SubCommand from "./SubCommand.js";
 import Handler from "./Handler.js";
 import { createRequire } from "node:module";
 import path from "node:path";
-import { brevoInit } from "./BrevoClient.js";
+import { brevoInit } from "../utility/BrevoClient.js";
 import {  sqliteDBInit } from "../db/sqliteDB.js";
+import { axiosInit } from "../utility/Axios.js";
 const require = createRequire(import.meta.url);
 
 
@@ -30,12 +31,13 @@ export default class BossClient extends Client {
         this.coolDowns = new Collection();
     }
 
-    init(): void {
-        this.loadHandler();
+    async init() {
         sqliteDBInit();
         brevoInit(this.config);
+        await axiosInit();
+        this.loadHandler();
         //TODO: change the log dest 
-        this.login(this.config.token)
+        this.login(this.config.discord.token)
             .catch((err) => console.log(err));
     }
 
