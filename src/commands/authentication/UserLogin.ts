@@ -1,11 +1,11 @@
-//@ts-ignore
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, ComponentType, Guild, GuildMember, GuildMemberManager, GuildMemberRoleManager, InteractionResponse, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, Role, TextInputBuilder, TextInputStyle} from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, ComponentType, GuildMember, GuildMemberRoleManager, InteractionResponse, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, Role, TextInputBuilder, TextInputStyle} from "discord.js";
 import type BossClient from "../../base/classes/BossClient.js";
 import Category from "../../base/enums/Category.js";
 import Command from "../../base/classes/Command.js";
 import { ClientEmail } from "../../base/db/models/ClientEmail.js";
 import { ClientCode } from "../../base/db/models/ClientCode.js";
-import { sendVerificationEmail } from "../../base/classes/BrevoClient.js";
+import { sendVerificationEmail } from "../../base/utility/BrevoClient.js";
+import { uwpscApiAxios } from "../../base/utility/Axios.js";
 
 
 const emailRegExp: RegExp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
@@ -15,6 +15,7 @@ const emailRegExp: RegExp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)
 export default class UserLogin extends Command {
     modalInputEmail: string;
     modalInputVerificationCode: string;
+    verifiedRoleId: string;
 
 
     constructor(client: BossClient) {
@@ -31,11 +32,13 @@ export default class UserLogin extends Command {
         });
         this.modalInputEmail = "";
         this.modalInputVerificationCode = "";
+        this.verifiedRoleId = client.config.discord.verifiedRoleId;
     }
 
 
     override async execute(interaction: ChatInputCommandInteraction) {
-        const verifiedRole: Role = (await interaction.guild?.roles.fetch(this.client.config.verifiedRoleId))!;
+        
+        const verifiedRole: Role = (await interaction.guild?.roles.fetch(this.verifiedRoleId))!;
         if (verifiedRole.members.has(interaction.user.id)) {
             interaction.reply({ content: "Your account is already linked to an email in our system. To link your discord account to another email address, call `/logout` first.", ephemeral: true });
             return;
@@ -66,7 +69,7 @@ export default class UserLogin extends Command {
 
             if (buttonInteraction.customId == "logInWithEmail") {
                 await this.displayLogInWithEmailModal(buttonInteraction);
-                if (this.isExistingEmail()) {
+                if (await this.isExistingEmail()) {
                     // enable the verification button
                     buttonRow.components[1]?.setDisabled(false);
                     this.distributeCode(buttonInteraction.user.id);
@@ -175,15 +178,16 @@ export default class UserLogin extends Command {
     }
 
 
-    private isExistingEmail(): boolean {
-        // TODO: check database to see if the email address exists or not
+    private async isExistingEmail(): Promise<boolean> {
+        // Regex match first to validate email address
         if (!emailRegExp.test(this.modalInputEmail)) {
             return false;
         }
-        if (this.modalInputEmail) {
-            return true;
-        } 
-        return false;
+        
+        const res = await uwpscApiAxios.get("/users", {
+            params: {email: this.modalInputEmail}
+        });
+        return res.data.length != 0;
     }
 
 
@@ -199,7 +203,7 @@ export default class UserLogin extends Command {
 
 
     private async assignVerifiedRole(interaction: ChatInputCommandInteraction) {
-        const verifiedRole: Role = (await interaction.guild?.roles.fetch(this.client.config.verifiedRoleId))!;
+        const verifiedRole: Role = (await interaction.guild?.roles.fetch(this.verifiedRoleId))!;
         const member: GuildMember = (await interaction.guild?.members.fetch(interaction.user.id))!;
         (member.roles as GuildMemberRoleManager).add(verifiedRole);
     }

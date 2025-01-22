@@ -21,7 +21,8 @@ export default class UserLogout extends Command {
     }
 
     override async execute(interaction: ChatInputCommandInteraction) {
-        const verifiedRole: Role = (await interaction.guild?.roles.fetch(this.client.config.verifiedRoleId))!;
+        const { verifiedRoleId } = this.client.config.discord;
+        const verifiedRole: Role = (await interaction.guild?.roles.fetch(verifiedRoleId))!;
         if (!verifiedRole.members.has(interaction.user.id)) {
             interaction.reply({ content: "Unable to log you out since you are not logged in right now.", ephemeral: true });
             return;

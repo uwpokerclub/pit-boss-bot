@@ -13,14 +13,15 @@ export default class Ready extends Event {
   }
 
   override async execute() {
+    const { token, clientId, guildId } = this.client.config.discord;
     console.log(`${this.client.user?.tag} is now ready`);
 
     // commands do not have to be registered every time the bot is deployed
     // however, this should not be an issue in the short term
     // dedicated register script can be found in the scripts folder
     const commands: object[] = this.getJson(this.client.commands);
-    const rest: REST = new REST().setToken(this.client.config.token);
-    const setCommands: any = await rest.put(Routes.applicationGuildCommands(this.client.config.clientId, this.client.config.guildId), {
+    const rest: REST = new REST().setToken(token);
+    const setCommands: any = await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
       body: commands
     });
 

@@ -21,6 +21,8 @@ function getJson(command: Command): object {
 
 // FIX: instantiating a client here is probably inefficient
 const dummyClient: BossClient = new BossClient();
+const { token, clientId, guildId } = dummyClient.config.discord;
+
 const commands: object[] = [];
 const files = (await glob(`dist/src/commands/**/*.js`)).map((filePath: string) => path.resolve(filePath));
 
@@ -42,8 +44,8 @@ await Promise.all(files.map(async (file: string) => {
 ));
 
 
-const rest: REST = new REST().setToken(dummyClient.config.token);
-const setCommands: any = await rest.put(Routes.applicationGuildCommands(dummyClient.config.clientId, dummyClient.config.guildId), {
+const rest: REST = new REST().setToken(token);
+const setCommands: any = await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
   body: commands
 });
 
