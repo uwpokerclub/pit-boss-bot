@@ -7,7 +7,7 @@ export default interface IConfig {
     };
     brevo: {
         brevoKey: string, 
-        authEmailAddress: string;
+        verification_email_template_id: string
     };
     uwpsc: {
         apiUrl: string;

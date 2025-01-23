@@ -59,7 +59,7 @@ export default class UserLogin extends Command {
         const buttonRow: ActionRowBuilder<ButtonBuilder> = new ActionRowBuilder<ButtonBuilder>();
         buttonRow.addComponents(loginWithEmailButton, verificationButton);
         //TODO: change this to the proper message
-        const response: InteractionResponse<boolean> = await interaction.reply({ content: `welcome and description text placeholder`, components: [buttonRow], ephemeral: true });
+        const response: InteractionResponse<boolean> = await interaction.reply({ content: `Please log in with the email address you used to registered with the club.`, components: [buttonRow], ephemeral: true });
         
         // client has 10 minutes to complete the login process
         const validTime: number = 600000;
@@ -166,7 +166,6 @@ export default class UserLogin extends Command {
     private async distributeCode(clientId: string) {
         // generate 6-digit code from 100000 to 999999
         const generatedCode: number = Math.floor(Math.random() * (999999 - 100000 + 1) + 100000);
-        //TODO: try-catch send email to prevent invalid email address
         try {
             sendVerificationEmail(this.client.config, this.modalInputEmail, generatedCode.toString());
         } catch (err) {
