@@ -3,6 +3,7 @@ import type BossClient from "../../base/classes/BossClient.js";
 import Command from "../../base/classes/Command.js";
 import Category from "../../base/enums/Category.js";
 import { ClientEmail } from "../../base/db/models/ClientEmail.js";
+import { ClientCode } from "../../base/db/models/ClientCode.js";
 
 
 export default class UserLogout extends Command {
@@ -29,19 +30,10 @@ export default class UserLogout extends Command {
         }
 
 
-        const emailQueryRes: ClientEmail[] = (await ClientEmail.findAll({
-            where: { discord_client_id: interaction.user.id, },
-        }));
 
-        if (emailQueryRes.length != 0) {
-            const registeredEmail: string = emailQueryRes[0]?.dataValues.email;
-            interaction.reply({ content: `Log out successful. You account is now unlinked from email ${registeredEmail}.`, ephemeral: true })
-        } else {
-            // This hopefully never happens, because why would the user get an "Account linked" role without having their date entry in the DB
-            interaction.reply({ content: `Log out successful. You account is now unlinked your registered email.`, ephemeral: true })
-        }
-        
+        interaction.reply({ content: `Log out successful. You account is now unlinked your registered email.`, ephemeral: true })
         await ClientEmail.destroy({ where: {discord_client_id: interaction.user.id}});
+        await ClientCode.destroy({ where: {discord_client_id: interaction.user.id}});
         
         
         const member: GuildMember = (await interaction.guild?.members.fetch(interaction.user.id))!;
