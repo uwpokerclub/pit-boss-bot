@@ -10,18 +10,22 @@ export function brevoInit(config: IConfig): void {
 }
 
 
-export function sendVerificationEmail(config: IConfig, emailAddress: string, verificationCode: string): void {
-    const sendSmtpEmail = new SendSmtpEmail();
-
-    sendSmtpEmail.subject = "UWPSC discord interface verification code";
-    sendSmtpEmail.htmlContent = 
-        `<html><body><p>Please click on the "Enter verification code" button in the discord reply and enter this code.</p><br>
-        <h3>{{ params.verificationCode }}</h3><br> 
-        <p>Do NOT share this code with anyone else.</p></body></html>`;
-    sendSmtpEmail.sender = { "email": config.brevo.authEmailAddress };
-    sendSmtpEmail.to = [{ "email": emailAddress }];
-    sendSmtpEmail.headers = { "Some-Custom-Name": "unique-id-1234" };
-    sendSmtpEmail.params = { "verificationCode": verificationCode };
+export async function sendVerificationEmail(config: IConfig, emailAddress: string, verificationCode: string) {
+    const sendSmtpEmail: SendSmtpEmail = {
+        to: [{
+            email: emailAddress,
+        }],
+        templateId: parseInt(config.brevo.verification_email_template_id),
+        params: {
+            verificationCode: verificationCode,
+        },
+        headers: {
+            'X-Mailin-custom': 'custom_header_1:custom_value_1|custom_header_2:custom_value_2'
+        }
+    };
+    sendSmtpEmail.params = { 
+        "verificationCode": verificationCode,
+    };
 
     brevoClient.sendTransacEmail(sendSmtpEmail);
 }
