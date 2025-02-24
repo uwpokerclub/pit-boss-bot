@@ -141,3 +141,6 @@ src/.DS_Store
 
 # localhost databases
 database.sqlite
+
+# development scripts
+src/devScripts

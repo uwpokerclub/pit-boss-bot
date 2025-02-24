@@ -2,9 +2,9 @@ import { DataTypes, Model, type InitOptions, type ModelAttributes } from 'sequel
 import { sqliteDB } from "../sqliteDB.js";
 
 
-export class ClientCode extends Model {
+export class Member extends Model {
     declare discord_client_id: string; 
-    declare code: number; 
+    declare email: string; 
 }
 
 
@@ -15,8 +15,8 @@ const modelAttributes: ModelAttributes<Model<any, any>> = {
         unique: true,
         primaryKey: true,
     }, 
-    code: {
-        type: DataTypes.INTEGER,
+    email: {
+        type: DataTypes.STRING,
         allowNull: false,
         unique: true,
     },
@@ -24,11 +24,11 @@ const modelAttributes: ModelAttributes<Model<any, any>> = {
 
 const initOptions: InitOptions<Model<any, any>> = {
     sequelize: sqliteDB,
-    modelName: "client_code",
+    modelName: "client_email",
     freezeTableName: true,
-};
+} 
 
 
 export function schemaInit() {
-    ClientCode.init(modelAttributes, initOptions);
+    Member.init(modelAttributes, initOptions);
 }

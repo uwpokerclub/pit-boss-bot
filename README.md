@@ -12,7 +12,7 @@
 - [Contributing](#contributing)
 
 ## Installation
-Before starting development or usage of the API, ensure you have all of the prerequiste software installed below.
+Before starting development or usage of the bot, ensure you have all of the prerequiste software installed below.
 
 ### Prerequisites
 - [NodeJS](https://nodejs.org/en/)
@@ -72,7 +72,7 @@ Visit [Brevo](https://www.brevo.com) to create an account.
 After creating your account, click on your profile and navigate to the `SMTP & API` menu. Navigate to the `API Keys` submenu and create a new api key.
 
 #### Brevo.verification_email_template_id
-Copy the content of the file `brevoVerificationEmailTemplate.txt` (in directory `src/assets/`) and paste it into your browser. Click `Import this template`. You will be brought to an editing page. Do not modify anything, hit `Save & quit` then `Save & Activate`. 
+Contact an admin / contributor of the project for the template url and paste it into your browser. Click `Import this template`. You will be brought to an editing page. Do not modify anything, hit `Save & quit` then `Save & Activate`. 
 Navigate to the `Campaigns` menu from your dashboard, then into the `Templates` submenu. Find the template you just imported, and copy the number after "#" under the name of the template.
 
 ### UWPSC api

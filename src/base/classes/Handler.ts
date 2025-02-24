@@ -1,10 +1,11 @@
-import { glob } from "glob";
 import path from "path";
+import fs from "node:fs";
 import type BossClient from "./BossClient.js";
 import Event from "./Event.js";
 import type Command from "./Command.js";
 import type SubCommand from "./SubCommand.js";
 import { createRequire } from "module";
+import { fileURLToPath } from "url";
 const require = createRequire(import.meta.url);
 
 export default class Handler {
@@ -15,9 +16,19 @@ export default class Handler {
     }
 
     async loadEvents() {
+        const dirname = path.dirname(fileURLToPath(import.meta.url));
+        let foldersPath: string = "/";
+        for (let segment of dirname.split(path.sep)) {
+            if (segment == "base") {
+                foldersPath = path.join(foldersPath, "events");
+                break;
+            }
+            foldersPath = path.join(foldersPath, segment);
+        }
+
+
         // files is a list of absolute file paths
-        const files: string[] = (await glob(`dist/src/events/**/*.js`)).map((filePath: string) => path.resolve(filePath));
-        
+        const files: string[] = this.getFiles(foldersPath);
         files.map(async (file: string) => {
             //construct new instance of Event of the file
 
@@ -41,9 +52,19 @@ export default class Handler {
     }
 
     async loadCommands() {
+        const dirname = path.dirname(fileURLToPath(import.meta.url));
+        let foldersPath: string = "/";
+        for (let segment of dirname.split(path.sep)) {
+            if (segment == "base") {
+                foldersPath = path.join(foldersPath, "commands");
+                break;
+            }
+            foldersPath = path.join(foldersPath, segment);
+        }
+
+
         // files is a list of absolute file paths
-        const files = (await glob(`dist/src/commands/**/*.js`)).map((filePath: string) => path.resolve(filePath));
-        
+        const files: string[] = this.getFiles(foldersPath);
         files.map(async (file: string) => {
             //construct new instance of Command | SubCommand of the file
             const command: Command | SubCommand = new (await import(file)).default(this.client);
@@ -62,6 +83,27 @@ export default class Handler {
             
             return delete require.cache[require.resolve(file)]
         });
+    }
+
+
+    //baseDirName must the name of a sub dir under src
+    private getFiles(directory: string): string[] {
+        const files: string[] = [];
+        
+        fs.readdirSync(directory).forEach(file => {
+            const absolute = path.join(directory, file);
+            if (fs.statSync(absolute).isDirectory()) {
+                this.getFiles(absolute).forEach(subFile => {
+                    files.push(subFile);
+                });
+                return;
+            }
+            else if (file.endsWith(".js")) {
+                files.push(absolute);
+                return;
+            }
+        });
+        return files;
     }
 
 }
