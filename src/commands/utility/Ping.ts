@@ -20,6 +20,6 @@ export default class Ping extends Command {
     }
 
     override execute(interaction: ChatInputCommandInteraction): void {
-        interaction.reply({ content: "Pong!", ephemeral: false })
+        interaction.reply({ content: "Pong!"})
     }
 }
