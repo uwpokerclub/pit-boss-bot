@@ -2,8 +2,8 @@ import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatIn
 import type BossClient from "../../base/classes/BossClient.js";
 import Category from "../../base/enums/Category.js";
 import Command from "../../base/classes/Command.js";
-import { ClientEmail } from "../../base/db/models/ClientEmail.js";
-import { ClientCode } from "../../base/db/models/ClientCode.js";
+import { Member } from "../../base/db/models/Member.js";
+import { VerificationCode } from "../../base/db/models/VerificationCode.js";
 import { sendVerificationEmail } from "../../base/utility/BrevoClient.js";
 import { uwpscApiAxios } from "../../base/utility/Axios.js";
 
@@ -12,17 +12,17 @@ const emailRegExp: RegExp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)
 
 
 
-export default class UserLoginPersistent extends Command {
+export default class Verifier extends Command {
     verifiedRoleId: string;
 
 
     constructor(client: BossClient) {
         super(client, {
-            name: "login_persist",
-            description: "Provides a permanent user login interface",
+            name: "verifier",
+            description: "Displays the verification form.",
             category: Category.Authentication,
             syntax: "/login_persist",
-            helpDescription: "provides a permanent user login interface, allows members to register their discord accounts into the system, gives registered members access to ranking commands",
+            helpDescription: "Displays a account verification form that will allow members to link their discord account with their account on the website.",
             defaultMemberPerm: PermissionFlagsBits.Administrator,   // users with administrative access in the guild have access to this command
             dmPerm: false,
             coolDown: 3,
@@ -37,12 +37,12 @@ export default class UserLoginPersistent extends Command {
         const verifiedRole: Role = (await interaction.guild?.roles.fetch(this.verifiedRoleId))!;
 
         const loginWithEmailButton: ButtonBuilder = new ButtonBuilder()
-        .setCustomId(`logInWithEmail-${interaction.id}`)
-        .setLabel('Log in with email')
+        .setCustomId(`verifyEmailButton-${interaction.id}`)
+        .setLabel('Verify email')
         .setStyle(ButtonStyle.Primary);
 
         const verificationButton: ButtonBuilder = new ButtonBuilder()
-        .setCustomId(`verification-${interaction.id}`)
+        .setCustomId(`verifyCodeButton-${interaction.id}`)
         .setLabel('Enter verification code')
         .setStyle(ButtonStyle.Primary);
 
@@ -50,7 +50,8 @@ export default class UserLoginPersistent extends Command {
         buttonRow.addComponents(loginWithEmailButton, verificationButton);
 
 
-        interaction.reply({ content: `Persistent login interaction message sent`, ephemeral: true })
+        await interaction.deferReply();
+        await interaction.deleteReply();
         const message: Message = await (interaction.channel as TextChannel).send({ content: `Please log in with the email address you used to registered with the club.`, components: [buttonRow] });
 
 
@@ -60,33 +61,29 @@ export default class UserLoginPersistent extends Command {
                 return;
             }
             if (verifiedRole.members.has(buttonInteraction.user.id)) {
-                buttonInteraction.reply({ content: "Your account is already linked to an email in our system. To link your discord account to another email address, call `/logout` first.", ephemeral: true });
+                buttonInteraction.reply({ content: "Your account is already linked to an email in our system. To link your discord account to another email address, use the `/logout` command first.", ephemeral: true });
                 return;
             }
 
 
-            if (buttonInteraction.customId == `logInWithEmail-${interaction.id}`) {
+            if (buttonInteraction.customId == `verifyEmailButton-${interaction.id}`) {
                 const modalInputEmail: string = await this.displayLogInWithEmailModal(buttonInteraction);
                 if (await this.isExistingEmail(modalInputEmail)) {
                     this.distributeCode(buttonInteraction.user.id, modalInputEmail);
-                    buttonInteraction.followUp({ content: `Please check ${modalInputEmail} for the verification code we just sent you.`, ephemeral: true })
-                } else {
-                    buttonInteraction.followUp({ content: "**We couldn't find the email address in our system. Please try again.**", ephemeral: true });
-                }
+                } 
+                buttonInteraction.followUp({ content: `A verification code was sent to ${modalInputEmail}. Please ensure to check your spam folders if you do not see the code in your inbox. If you did not receive a code please contact an administrator.`, ephemeral: true });
             } 
             
-            else if (buttonInteraction.customId == `verification-${interaction.id}`) {
-                //FIXME: rework how client email db table works, 
+            else if (buttonInteraction.customId == `verifyCodeButton-${interaction.id}`) {
+
                 const modalInputEmail: string | undefined = await this.getUserEmail(buttonInteraction.user.id);
                 if (!modalInputEmail) {
                     buttonInteraction.reply({ content: "**Please input your email using the button to the left first before verifying.**", ephemeral: true });
                     return;
-                }
-
+                };
                 const modalInputVerificationCode: string = await this.displayVerificationModal(buttonInteraction);
                 if (await this.verifyCode(buttonInteraction.user.id, modalInputVerificationCode)) {
-                    await ClientEmail.destroy({where: {discord_client_id: buttonInteraction.user.id}});
-                    await ClientCode.destroy({where: {discord_client_id: buttonInteraction.user.id}});
+                    await VerificationCode.destroy({where: {discord_client_id: buttonInteraction.user.id}});
                     this.assignVerifiedRole(interaction);
                     buttonInteraction.followUp({ content: `**Verification successful**. Your discord account is now linked to ${modalInputEmail}!`, ephemeral: true });
                 } else {
@@ -100,13 +97,12 @@ export default class UserLoginPersistent extends Command {
 
     private async displayLogInWithEmailModal(interaction: ButtonInteraction): Promise<string> {
         const emailModal: ModalBuilder = new ModalBuilder()
-        .setCustomId(`login-${interaction.id}`)
-        .setTitle("Log in");
+        .setCustomId(`verifyEmailModal-${interaction.id}`)
+        .setTitle("Verify your email");
 
         const emailInput: TextInputBuilder = new TextInputBuilder()
-        .setCustomId("emailInput")
-        .setLabel("Please enter the registered email address.")
-        .setValue("E.G. f100lastname@uwaterloo.ca")
+        .setCustomId("emailModalInput")
+        .setLabel("Please enter your email.")
         .setStyle(TextInputStyle.Short)
         .setRequired(true);
 
@@ -118,18 +114,16 @@ export default class UserLoginPersistent extends Command {
 
 
         // wait for the modal submission
-        const filter = (ModalSubmitInteraction: ModalSubmitInteraction) => ModalSubmitInteraction.customId == `login-${interaction.id}`;
-        let modalInputEmail: string = "Uninitialized email input";
-        await interaction.awaitModalSubmit({filter: filter, time: 600000})
-        .then(async (modalInteraction) => {
-            modalInputEmail = modalInteraction.fields.getTextInputValue("emailInput");
+        const filter = (ModalSubmitInteraction: ModalSubmitInteraction) => ModalSubmitInteraction.customId == `verifyEmailModal-${interaction.id}`;
+        let modalInputEmail: string = "";
+        try {
+            const modalInteraction: ModalSubmitInteraction = await interaction.awaitModalSubmit({filter: filter, time: 600000});
+            modalInputEmail = modalInteraction.fields.getTextInputValue("emailModalInput");
             await modalInteraction.deferReply();
             modalInteraction.deleteReply();
-        })
-        .catch((err) => {
+        } catch (err) {
             console.log(err);
-            return;
-        });
+        }
 
         return modalInputEmail;
         
@@ -138,11 +132,11 @@ export default class UserLoginPersistent extends Command {
 
     private async displayVerificationModal(interaction: ButtonInteraction): Promise<string> {
         const verificationModal: ModalBuilder = new ModalBuilder()
-        .setCustomId(`verification-${interaction.id}`)
-        .setTitle("Log in");
+        .setCustomId(`verifyCodeModal-${interaction.id}`)
+        .setTitle("Code verification");
 
         const emailInput: TextInputBuilder = new TextInputBuilder()
-        .setCustomId("verificationCodeInput")
+        .setCustomId("codeModalInput")
         .setLabel("Please enter the verification code")
         .setStyle(TextInputStyle.Short)
         .setRequired(true);
@@ -150,22 +144,24 @@ export default class UserLoginPersistent extends Command {
         const verificationCodeActionRow: ActionRowBuilder<TextInputBuilder> = new ActionRowBuilder<TextInputBuilder>().addComponents(emailInput);
 
         verificationModal.addComponents(verificationCodeActionRow);
+
+
         interaction.showModal(verificationModal);
 
 
+
+
         // wait for the modal submission
-        const filter = (ModalSubmitInteraction: ModalSubmitInteraction) => ModalSubmitInteraction.customId == `verification-${interaction.id}`;
-        let modalInputVerificationCode: string = "Uninitialized code input";
-        await interaction.awaitModalSubmit({filter: filter, time: 600000})
-        .then(async (modalInteraction) => {
-            modalInputVerificationCode = modalInteraction.fields.getTextInputValue("verificationCodeInput");
+        const filter = (ModalSubmitInteraction: ModalSubmitInteraction) => ModalSubmitInteraction.customId == `verifyCodeModal-${interaction.id}`;
+        let modalInputVerificationCode: string = "";
+        try {
+            const modalInteraction: ModalSubmitInteraction = await interaction.awaitModalSubmit({filter: filter, time: 600000})
+            modalInputVerificationCode = modalInteraction.fields.getTextInputValue("codeModalInput");
             await modalInteraction.deferReply();
             modalInteraction.deleteReply();
-        })
-        .catch((err) => {
+        } catch (err) {
             console.log(err);
-            return;
-        });   
+        }   
         
         return modalInputVerificationCode;
     }
@@ -180,10 +176,10 @@ export default class UserLoginPersistent extends Command {
             console.log(err);
         }
 
-        await ClientEmail.destroy({where: {discord_client_id: clientId}});
-        await ClientEmail.create({ discord_client_id: clientId, email: modalInputEmail});
-        await ClientCode.destroy({where: {discord_client_id: clientId}});
-        await ClientCode.create({ discord_client_id: clientId, code: generatedCode.toString()});
+        await Member.destroy({where: {discord_client_id: clientId}});
+        await Member.create({ discord_client_id: clientId, email: modalInputEmail});
+        await VerificationCode.destroy({where: {discord_client_id: clientId}});
+        await VerificationCode.create({ discord_client_id: clientId, code: generatedCode.toString()});
     }
 
 
@@ -201,7 +197,7 @@ export default class UserLoginPersistent extends Command {
 
 
     private async verifyCode(clientId: string, modalInputVerificationCode: string): Promise<boolean> {
-        const code = (await ClientCode.findAll({
+        const code = (await VerificationCode.findAll({
             where: {
                 discord_client_id: clientId,
             },
@@ -212,7 +208,7 @@ export default class UserLoginPersistent extends Command {
 
 
     private async getUserEmail(clientId: string): Promise<string | undefined > {
-        const email = (await ClientEmail.findAll({
+        const email = (await Member.findAll({
             where: {
                 discord_client_id: clientId,
             },

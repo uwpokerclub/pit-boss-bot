@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rm -r dist",
     "build": "tsc --build",
-    "start": "npm run clean && npm run build && node dist/src/index.js",
+    "start": "npm run clean && npm run build && node dist/src/scripts/deployCommands.js && node dist/src/index.js",
     "startNoClean": "npm run build && node dist/src/index.js"
   },
   "type": "module",

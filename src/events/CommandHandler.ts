@@ -17,10 +17,10 @@ export default class CommandHandler extends Event {
             return;
         }
 
-        const command: Command = this.client.commands.get(interaction.commandName)!;
+        const command: Command | undefined = this.client.commands.get(interaction.commandName);
         
         if (!command) {
-            interaction.reply({ content: `This command does not exist}`, ephemeral: true });
+            interaction.reply({ content: `This command does not exist`, ephemeral: true });
             this.client.commands.delete(interaction.commandName);
             return;
         }

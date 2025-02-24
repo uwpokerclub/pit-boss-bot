@@ -1,7 +1,7 @@
 import type IEventOptions from "../interfaces/IEventOptions.js";
 import type BossClient from "./BossClient.js";
 
-export default class Event {
+export default abstract class Event {
     client: BossClient;
     name: string;
     description: string;
@@ -14,7 +14,5 @@ export default class Event {
         this.once = options.once;
     }
 
-    execute(..._args: any): void {
-        
-    }
+    abstract execute(..._args: any): void;
 }

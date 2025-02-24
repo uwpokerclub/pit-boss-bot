@@ -19,12 +19,6 @@ export async function sendVerificationEmail(config: IConfig, emailAddress: strin
         params: {
             verificationCode: verificationCode,
         },
-        headers: {
-            'X-Mailin-custom': 'custom_header_1:custom_value_1|custom_header_2:custom_value_2'
-        }
-    };
-    sendSmtpEmail.params = { 
-        "verificationCode": verificationCode,
     };
 
     brevoClient.sendTransacEmail(sendSmtpEmail);
