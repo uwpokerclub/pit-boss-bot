@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, GuildMember, GuildMemberRoleManager, Message, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, Role, TextChannel, TextInputBuilder, TextInputStyle} from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, GuildMember, GuildMemberRoleManager, Message, MessageFlags, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, Role, TextChannel, TextInputBuilder, TextInputStyle} from "discord.js";
 import type BossClient from "../../base/classes/BossClient.js";
 import Category from "../../base/enums/Category.js";
 import Command from "../../base/classes/Command.js";
@@ -61,7 +61,7 @@ export default class Verifier extends Command {
                 return;
             }
             if (verifiedRole.members.has(buttonInteraction.user.id)) {
-                buttonInteraction.reply({ content: "Your account is already linked to an email in our system. To link your discord account to another email address, use the `/logout` command first.", ephemeral: true });
+                buttonInteraction.reply({ content: "Your account is already linked to an email in our system. To link your discord account to another email address, use the `/logout` command first.", flags: MessageFlags.Ephemeral });
                 return;
             }
 
@@ -71,23 +71,23 @@ export default class Verifier extends Command {
                 if (await this.isExistingEmail(modalInputEmail)) {
                     this.distributeCode(buttonInteraction.user.id, modalInputEmail);
                 } 
-                buttonInteraction.followUp({ content: `A verification code was sent to ${modalInputEmail}. Please ensure to check your spam folders if you do not see the code in your inbox. If you did not receive a code please contact an administrator.`, ephemeral: true });
+                buttonInteraction.followUp({ content: `A verification code was sent to ${modalInputEmail}. Please ensure to check your spam folders if you do not see the code in your inbox. If you did not receive a code please contact an administrator.`, flags: MessageFlags.Ephemeral });
             } 
             
             else if (buttonInteraction.customId == `verifyCodeButton-${interaction.id}`) {
 
                 const modalInputEmail: string | undefined = await this.getUserEmail(buttonInteraction.user.id);
                 if (!modalInputEmail) {
-                    buttonInteraction.reply({ content: "**Please input your email using the button to the left first before verifying.**", ephemeral: true });
+                    buttonInteraction.reply({ content: "**Please input your email using the button to the left first before verifying.**", flags: MessageFlags.Ephemeral });
                     return;
                 };
                 const modalInputVerificationCode: string = await this.displayVerificationModal(buttonInteraction);
                 if (await this.verifyCode(buttonInteraction.user.id, modalInputVerificationCode)) {
                     await VerificationCode.destroy({where: {discord_client_id: buttonInteraction.user.id}});
                     this.assignVerifiedRole(interaction);
-                    buttonInteraction.followUp({ content: `**Verification successful**. Your discord account is now linked to ${modalInputEmail}!`, ephemeral: true });
+                    buttonInteraction.followUp({ content: `**Verification successful**. Your discord account is now linked to ${modalInputEmail}!`, flags: MessageFlags.Ephemeral });
                 } else {
-                    buttonInteraction.followUp({ content: `**Verification failed**. Please try entering the email or the verification code again.`, ephemeral: true });
+                    buttonInteraction.followUp({ content: `**Verification failed**. Please try entering the email or the verification code again.`, flags: MessageFlags.Ephemeral });
                 }
             }
         })

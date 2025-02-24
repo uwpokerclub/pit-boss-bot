@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, GuildMember, GuildMemberRoleManager, PermissionFlagsBits, Role } from "discord.js";
+import { ChatInputCommandInteraction, GuildMember, GuildMemberRoleManager, MessageFlags, PermissionFlagsBits, Role } from "discord.js";
 import type BossClient from "../../base/classes/BossClient.js";
 import Command from "../../base/classes/Command.js";
 import Category from "../../base/enums/Category.js";
@@ -25,13 +25,13 @@ export default class UserLogout extends Command {
         const { verifiedRoleId } = this.client.config.discord;
         const verifiedRole: Role = (await interaction.guild?.roles.fetch(verifiedRoleId))!;
         if (!verifiedRole.members.has(interaction.user.id)) {
-            interaction.reply({ content: "Unable to log you out since you are not logged in right now.", ephemeral: true });
+            interaction.reply({ content: "Unable to log you out since you are not logged in right now.", flags: MessageFlags.Ephemeral });
             return;
         }
 
 
 
-        interaction.reply({ content: `Log out successful. You account is now unlinked your registered email.`, ephemeral: true })
+        interaction.reply({ content: `Log out successful. You account is now unlinked your registered email.`, flags: MessageFlags.Ephemeral })
         await Member.destroy({ where: {discord_client_id: interaction.user.id}});
         await VerificationCode.destroy({ where: {discord_client_id: interaction.user.id}});
         

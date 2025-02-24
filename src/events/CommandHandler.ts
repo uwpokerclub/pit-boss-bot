@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Collection, EmbedBuilder, Events } from "discord.js";
+import { ChatInputCommandInteraction, Collection, EmbedBuilder, Events, MessageFlags } from "discord.js";
 import type BossClient from "../base/classes/BossClient.js";
 import Event from "../base/classes/Event.js";
 import type Command from "../base/classes/Command.js";
@@ -20,7 +20,7 @@ export default class CommandHandler extends Event {
         const command: Command | undefined = this.client.commands.get(interaction.commandName);
         
         if (!command) {
-            interaction.reply({ content: `This command does not exist`, ephemeral: true });
+            interaction.reply({ content: `This command does not exist`, flags: MessageFlags.Ephemeral });
             this.client.commands.delete(interaction.commandName);
             return;
         }
@@ -41,7 +41,7 @@ export default class CommandHandler extends Event {
             interaction.reply({ embeds: [new EmbedBuilder()
                 .setColor("Red")
                 .setDescription(`Please wait another \`${timeLeft}\` seconds to run this command!`)
-            ], ephemeral: true });
+            ], flags: MessageFlags.Ephemeral });
             return;
         }
 
