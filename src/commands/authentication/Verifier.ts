@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, GuildMember, GuildMemberRoleManager, Message, MessageFlags, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, Role, TextChannel, TextInputBuilder, TextInputStyle} from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, Events, GuildMember, GuildMemberRoleManager, MessageFlags, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, Role, TextChannel, TextInputBuilder, TextInputStyle} from "discord.js";
 import type BossClient from "../../base/classes/BossClient.js";
 import Category from "../../base/enums/Category.js";
 import Command from "../../base/classes/Command.js";
@@ -52,11 +52,11 @@ export default class Verifier extends Command {
 
         await interaction.deferReply();
         await interaction.deleteReply();
-        const message: Message = await (interaction.channel as TextChannel).send({ content: `Please log in with the email address you used to registered with the club.`, components: [buttonRow] });
+        await (interaction.channel as TextChannel).send({ content: `Please log in with the email address you used to registered with the club.`, components: [buttonRow] });
 
 
-        const collector = message.createMessageComponentCollector();
-        collector.on("collect", async (buttonInteraction) => {
+
+        this.client.on(Events.InteractionCreate, async (buttonInteraction) => {
             if (!(buttonInteraction instanceof ButtonInteraction)) {
                 return;
             }
@@ -71,7 +71,7 @@ export default class Verifier extends Command {
                 if (await this.isExistingEmail(modalInputEmail)) {
                     this.distributeCode(buttonInteraction.user.id, modalInputEmail);
                 } 
-                buttonInteraction.followUp({ content: `A verification code was sent to ${modalInputEmail}. Please ensure to check your spam folders if you do not see the code in your inbox. If you did not receive a code please contact an administrator.`, flags: MessageFlags.Ephemeral });
+                buttonInteraction.followUp({ content: `A verification code was sent to ${modalInputEmail}. Please ensure to check your spam folders if you do not see the code in your inbox. **Please note that you must verify with the email address you used to register with the club**. If you did not receive a code please contact an administrator.`, flags: MessageFlags.Ephemeral });
             } 
             
             else if (buttonInteraction.customId == `verifyCodeButton-${interaction.id}`) {
@@ -90,7 +90,7 @@ export default class Verifier extends Command {
                     buttonInteraction.followUp({ content: `**Verification failed**. Please try entering the email or the verification code again.`, flags: MessageFlags.Ephemeral });
                 }
             }
-        })
+        });
     }
 
 
