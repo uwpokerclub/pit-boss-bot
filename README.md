@@ -12,7 +12,7 @@
 - [Contributing](#contributing)
 
 ## Installation
-Before starting development or usage of the bot, ensure you have all of the prerequiste software installed below.
+Before starting development or usage of the bot, ensure you have all of the prerequisite softwares installed below.
 
 ### Prerequisites
 - [NodeJS](https://nodejs.org/en/)
@@ -53,10 +53,10 @@ Navigate to the `OAuth2` menu found on the left side of the interface once you c
 Right click on the server you wish to invite the bot to and click the `Copy Server ID` option.
 
 #### discord.verifiedRoleId
-This is the id of the role the bot will assign to users after they sign in.  
+This is the id of the role the bot will assign to users after they verify their accounts.  
 
 Create a role in the desired discord server, right click on the role in server setting and hit the `Copy Role ID` option to copy its ID.
-Make sure the verified role you just create is placed **below** the your bot's role.
+Make sure the verified role you just created is placed **below** the your bot's role.
 
 #### Additional information
 Make sure the bot has the following permissions in the desired server:
@@ -72,14 +72,14 @@ Visit [Brevo](https://www.brevo.com) to create an account.
 After creating your account, click on your profile and navigate to the `SMTP & API` menu. Navigate to the `API Keys` submenu and create a new api key.
 
 #### Brevo.verification_email_template_id
-Contact an admin / contributor of the project for the template url and paste it into your browser. Click `Import this template`. You will be brought to an editing page. Do not modify anything, hit `Save & quit` then `Save & Activate`. 
+Contact an admin / contributor of the project for the template url and paste it into your browser. Click `Import this template`. You will be brought to an editing page. Do not modify anything. Hit `Save & quit` then `Save & Activate`. 
 Navigate to the `Campaigns` menu from your dashboard, then into the `Templates` submenu. Find the template you just imported, and copy the number after "#" under the name of the template.
 
 ### UWPSC api
 **_Note: You will also need to have the [API server](https://github.com/uwpokerclub/api) running locally as well._**
 
-**uwpsc.uwpsc.apiUrl:** where the api is hosted.
-**cookieName:** the name of the authentication cookie. Likely going to be one of `uwpsc-session-id` or `uwpsc-dev-session-id`.
+**uwpsc.uwpsc.apiUrl:** where the api is hosted.\
+**cookieName:** the name of the authentication cookie. Likely going to be one of `uwpsc-session-id` or `uwpsc-dev-session-id`.\
 **uwpsc.username & uwpsc.password:** login credentials.
 
 
@@ -110,7 +110,7 @@ Or alternatively,
 ```sh
 npm run start
 ```
-Note that the second option cleans the build folder and rebuilds the program before execution.
+Note that the second option cleans the build folder, rebuilds the program, and registers all commands to the designated guild before execution.
 
 
 ## Migrations
@@ -120,15 +120,9 @@ The sqlite schemas should be initialized automatically upon initial execution of
 ## Scripts
 
 ### Manual command registration
-The Discord command are registered every time the discord client emits the ready event at the start of program runtime. If you wish to register the commands to designated guild manually, run this following terminal command after building the program:
+To register the commands to designated guild manually, run this following terminal command after building the program:
 ```sh
 node dist/src/scripts/deployCommands.js 
-```
-
-### sqlite clean DB
-Note that this will remove all data in the sqlite db, which holds temporary client verification code information and registered clients-email pairs. Run the following terminal command after building the program:
-```sh
-node dist/src/scripts/cleanDB.js 
 ```
 
 
