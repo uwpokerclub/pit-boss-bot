@@ -2,9 +2,9 @@ import { DataTypes, Model, type InitOptions, type ModelAttributes } from 'sequel
 import { sqliteDB } from "../sqliteDB.js";
 
 
-export class VerificationCode extends Model {
+export class VerificationAttempt extends Model {
     declare discord_client_id: string; 
-    declare code: number; 
+    declare remaining_failed_attempts: number; 
 }
 
 
@@ -15,19 +15,19 @@ const modelAttributes: ModelAttributes<Model<any, any>> = {
         unique: true,
         primaryKey: true,
     }, 
-    code: {
+    remaining_failed_attempts: {
         type: DataTypes.INTEGER,
-        // code can be null if the email address the user provided is invalid, in this case a null code will be used to ensure the user will always fail the verification system
+        allowNull: false,
     },
 };
 
 const initOptions: InitOptions<Model<any, any>> = {
     sequelize: sqliteDB,
-    modelName: "verification_code",
+    modelName: "verification_attempt",
     freezeTableName: true,
-};
+} 
 
 
 export function schemaInit() {
-    VerificationCode.init(modelAttributes, initOptions);
+    VerificationAttempt.init(modelAttributes, initOptions);
 }

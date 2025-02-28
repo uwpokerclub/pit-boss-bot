@@ -8,7 +8,9 @@
     "clean": "rm -r dist",
     "build": "tsc --build",
     "start": "npm run clean && npm run build && node dist/src/scripts/deployCommands.js && node dist/src/index.js",
-    "startNoClean": "npm run build && node dist/src/index.js"
+    "startNoClean": "npm run build && node dist/src/index.js",
+
+    "cleanDB": "node dist/src/devScripts/cleanDB.js"
   },
   "type": "module",
   "repository": {
