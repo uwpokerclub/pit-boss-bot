@@ -24,7 +24,7 @@ const modelAttributes: ModelAttributes<Model<any, any>> = {
 
 const initOptions: InitOptions<Model<any, any>> = {
     sequelize: sqliteDB,
-    modelName: "client_email",
+    modelName: "member",
     freezeTableName: true,
 } 
 
