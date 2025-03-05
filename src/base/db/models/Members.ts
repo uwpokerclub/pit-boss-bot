@@ -5,6 +5,7 @@ import { sqliteDB } from "../sqliteDB.js";
 export class Members extends Model {
     declare discord_client_id: string; 
     declare email: string; 
+    declare user_id: number;
 }
 
 
