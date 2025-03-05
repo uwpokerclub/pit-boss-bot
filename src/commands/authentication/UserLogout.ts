@@ -2,8 +2,8 @@ import { ChatInputCommandInteraction, GuildMember, GuildMemberRoleManager, Messa
 import type BossClient from "../../base/classes/BossClient.js";
 import Command from "../../base/classes/Command.js";
 import Category from "../../base/enums/Category.js";
-import { Member } from "../../base/db/models/Member.js";
-import { VerificationCode } from "../../base/db/models/VerificationCode.js";
+import { Members } from "../../base/db/models/Members.js";
+import { VerificationCodes } from "../../base/db/models/VerificationCodes.js";
 
 
 export default class UserLogout extends Command {
@@ -32,8 +32,8 @@ export default class UserLogout extends Command {
 
 
         interaction.reply({ content: `Log out successful. You account is now unlinked your registered email.`, flags: MessageFlags.Ephemeral })
-        await Member.destroy({ where: {discord_client_id: interaction.user.id}});
-        await VerificationCode.destroy({ where: {discord_client_id: interaction.user.id}});
+        await Members.destroy({ where: {discord_client_id: interaction.user.id}});
+        await VerificationCodes.destroy({ where: {discord_client_id: interaction.user.id}});
         
         
         const member: GuildMember = (await interaction.guild?.members.fetch(interaction.user.id))!;

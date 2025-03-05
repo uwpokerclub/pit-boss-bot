@@ -2,7 +2,7 @@ import { ApplicationCommandOptionType, ChatInputCommandInteraction, MessageFlags
 import type BossClient from "../../base/classes/BossClient.js";
 import Command from "../../base/classes/Command.js";
 import Category from "../../base/enums/Category.js";
-import { VerificationAttempt } from "../../base/db/models/VerificationAttempt.js";
+import { VerificationAttempts } from "../../base/db/models/VerificationAttempts.js";
 
 export default class ResetMember extends Command {
     constructor(client: BossClient) {
@@ -34,7 +34,7 @@ export default class ResetMember extends Command {
         }
 
         const targetUserId: string  = targetUserParam.user!.id;
-        await VerificationAttempt.destroy({where: {discord_client_id: targetUserId}});
+        await VerificationAttempts.destroy({where: {discord_client_id: targetUserId}});
 
         interaction.reply({ content: `${targetUserParam.user?.username}'s account has been reset`, flags: MessageFlags.Ephemeral });
     }

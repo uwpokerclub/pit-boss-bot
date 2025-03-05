@@ -2,11 +2,11 @@ import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatIn
 import type BossClient from "../../base/classes/BossClient.js";
 import Category from "../../base/enums/Category.js";
 import Command from "../../base/classes/Command.js";
-import { Member } from "../../base/db/models/Member.js";
-import { VerificationCode } from "../../base/db/models/VerificationCode.js";
+import { Members } from "../../base/db/models/Members.js";
+import { VerificationCodes } from "../../base/db/models/VerificationCodes.js";
+import { VerificationAttempts } from "../../base/db/models/VerificationAttempts.js";
 import { sendVerificationEmail } from "../../base/utility/BrevoClient.js";
 import { uwpscApiAxios } from "../../base/utility/Axios.js";
-import { VerificationAttempt } from "../../base/db/models/VerificationAttempt.js";
 
 
 const emailRegExp: RegExp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
@@ -68,7 +68,7 @@ export default class Verifier extends Command {
             }
 
             // verification limit check
-            let remainingAttempts: number = (await VerificationAttempt.findAll({
+            let remainingAttempts: number = (await VerificationAttempts.findAll({
                 where: {
                     discord_client_id: buttonInteraction.user.id,
                 },
@@ -100,9 +100,7 @@ export default class Verifier extends Command {
                 };
                 const modalInputVerificationCode: string = await this.displayVerificationModal(buttonInteraction);
                 if (await this.verifyCode(buttonInteraction.user.id, modalInputVerificationCode)) {
-                    await VerificationCode.destroy({where: {discord_client_id: buttonInteraction.user.id}});
-                    this.assignVerifiedRole(interaction);
-                    buttonInteraction.followUp({ content: `**Verification successful**. Your discord account is now linked to ${modalInputEmail}!`, flags: MessageFlags.Ephemeral });
+                    this.processSuccessfulVerification(buttonInteraction);
                 } else {
                     buttonInteraction.followUp({ content: `**Verification failed**. Please try entering the email or the verification code again.`, flags: MessageFlags.Ephemeral });
                 }
@@ -194,32 +192,32 @@ export default class Verifier extends Command {
         }
 
 
-        const userEmailEntry: Member | undefined = (await Member.findAll({
+        const userEmailEntry: Members | undefined = (await Members.findAll({
             where: {
                 discord_client_id: clientId,
             },
         }))[0];
 
         if (userEmailEntry == undefined) {
-            await Member.create({ discord_client_id: clientId, email: modalInputEmail});
+            await Members.create({ discord_client_id: clientId, email: modalInputEmail});
         } else {
-            await Member.update(
+            await Members.update(
                 { email: modalInputEmail },
                 { where: { discord_client_id: clientId } },
             );
         }
 
 
-        const userCodeEntry: VerificationCode | undefined = (await VerificationCode.findAll({
+        const userCodeEntry: VerificationCodes | undefined = (await VerificationCodes.findAll({
             where: {
                 discord_client_id: clientId,
             },
         }))[0];
 
         if (userCodeEntry == undefined) {
-            await VerificationCode.create({ discord_client_id: clientId, code: generatedCode.toString()});
+            await VerificationCodes.create({ discord_client_id: clientId, code: generatedCode.toString()});
         } else {
-            await VerificationCode.update(
+            await VerificationCodes.update(
                 { code: generatedCode.toString() },
                 { where: { discord_client_id: clientId } },
             );
@@ -230,16 +228,16 @@ export default class Verifier extends Command {
         // even if email does not exists in the system, insert this entry in the db to allow the user to proceed to verify codes.
         // note that they will not receive a code (since the email is invalid), and the code verification will always fail.
         // this is just to prevent users abusing the system by brute force checking if a specific email address is valid in the system or not.
-        const userEmailEntry: Member | undefined = (await Member.findAll({
+        const userEmailEntry: Members | undefined = (await Members.findAll({
             where: {
                 discord_client_id: clientId,
             },
         }))[0];
 
         if (userEmailEntry == undefined) {
-            await Member.create({ discord_client_id: clientId, email: email});
+            await Members.create({ discord_client_id: clientId, email: email});
         } else {
-            await Member.update(
+            await Members.update(
                 { email: email },
                 { where: { discord_client_id: clientId } },
             );
@@ -247,33 +245,33 @@ export default class Verifier extends Command {
 
         
         // set code in db to null so that user cannot successfully verify their account if given an invalid email address
-        const userCodeEntry: VerificationCode | undefined = (await VerificationCode.findAll({
+        const userCodeEntry: VerificationCodes | undefined = (await VerificationCodes.findAll({
             where: {
                 discord_client_id: clientId,
             },
         }))[0];
 
         if (userCodeEntry == undefined) {
-            await VerificationCode.create({ discord_client_id: clientId, code: null});
+            await VerificationCodes.create({ discord_client_id: clientId, code: null});
         } else {
-            await VerificationCode.update(
+            await VerificationCodes.update(
                 { code: null },
                 { where: { discord_client_id: clientId } },
             );
         }
 
 
-        let remainingAttempts: number | undefined = (await VerificationAttempt.findAll({
+        let remainingAttempts: number | undefined = (await VerificationAttempts.findAll({
             where: {
                 discord_client_id: clientId,
             },
         }))[0]?.dataValues.remaining_failed_attempts;
 
         if (remainingAttempts == undefined) {
-            await VerificationAttempt.create({ discord_client_id: clientId, remaining_failed_attempts: defaultFailedAttemptLimit });
+            await VerificationAttempts.create({ discord_client_id: clientId, remaining_failed_attempts: defaultFailedAttemptLimit });
             remainingAttempts = defaultFailedAttemptLimit;
         } 
-        await VerificationAttempt.update(
+        await VerificationAttempts.update(
             { remaining_failed_attempts: remainingAttempts - 1},
             { where: { discord_client_id: clientId } },
         );
@@ -297,7 +295,7 @@ export default class Verifier extends Command {
 
 
     private async verifyCode(clientId: string, modalInputVerificationCode: string): Promise<boolean> {
-        const code = (await VerificationCode.findAll({
+        const code = (await VerificationCodes.findAll({
             where: {
                 discord_client_id: clientId,
             },
@@ -308,7 +306,7 @@ export default class Verifier extends Command {
 
 
     private async getUserEmail(clientId: string): Promise<string | undefined > {
-        const email = (await Member.findAll({
+        const email = (await Members.findAll({
             where: {
                 discord_client_id: clientId,
             },
@@ -319,9 +317,28 @@ export default class Verifier extends Command {
     }
 
 
-    private async assignVerifiedRole(interaction: ChatInputCommandInteraction) {
+    private async assignVerifiedRole(interaction: ButtonInteraction) {
         const verifiedRole: Role = (await interaction.guild?.roles.fetch(this.verifiedRoleId))!;
         const member: GuildMember = (await interaction.guild?.members.fetch(interaction.user.id))!;
         (member.roles as GuildMemberRoleManager).add(verifiedRole);
+    }
+
+
+    private async processSuccessfulVerification(buttonInteraction: ButtonInteraction) {
+        await VerificationCodes.destroy({where: {discord_client_id: buttonInteraction.user.id}});
+
+        const email: string = (await this.getUserEmail(buttonInteraction.user.id))!;
+
+        const userId: number = (await uwpscApiAxios.get("/users", {
+            params: {email: email}
+        })).data[0].id;
+
+        await Members.update(
+            { user_id: userId },
+            { where: { discord_client_id: buttonInteraction.user.id } },
+        );
+
+        this.assignVerifiedRole(buttonInteraction);
+        buttonInteraction.followUp({ content: `**Verification successful**. Your discord account is now linked to ${email}!`, flags: MessageFlags.Ephemeral });
     }
 }
