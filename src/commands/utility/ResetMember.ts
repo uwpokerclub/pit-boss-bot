@@ -36,6 +36,8 @@ export default class ResetMember extends Command {
         const targetUserId: string  = targetUserParam.user!.id;
         await VerificationAttempts.destroy({where: {discord_client_id: targetUserId}});
 
+        //TODO: add ability to revert user verification with additional command parameter --hard.
+
         interaction.reply({ content: `${targetUserParam.user?.username}'s account has been reset`, flags: MessageFlags.Ephemeral });
     }
 

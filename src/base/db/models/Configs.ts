@@ -4,6 +4,7 @@ import { sqliteDB } from "../sqliteDB.js";
 
 export class Configs extends Model {
     declare current_semester_id: string; 
+    declare current_semester_name: string;
 }
 
 
@@ -12,6 +13,10 @@ const modelAttributes: ModelAttributes<Model<any, any>> = {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
+    },
+    current_semester_name: {
+        type: DataTypes.STRING,
+        allowNull: false,
     }
 };
 

@@ -62,6 +62,10 @@ export default class Verifier extends Command {
                 return;
             }
 
+            if (buttonInteraction.customId != `verifyEmailButton-${interaction.id}` && buttonInteraction.customId != `verifyCodeButton-${interaction.id}`) {
+                return;
+            }
+
             if (verifiedRole.members.has(buttonInteraction.user.id)) {
                 buttonInteraction.reply({ content: "Your account is already linked to an email in our system. To link your discord account to another email address, use the `/logout` command first.", flags: MessageFlags.Ephemeral });
                 return;
@@ -312,7 +316,6 @@ export default class Verifier extends Command {
             },
         }))[0]?.dataValues.email;
 
-        // FIXME: this may be a problem, reading dataValue of undefined
         return email;
     }
 
@@ -333,6 +336,8 @@ export default class Verifier extends Command {
             params: {email: email}
         })).data[0].id;
 
+
+        // TODO: register member for current semester
         await Members.update(
             { user_id: userId },
             { where: { discord_client_id: buttonInteraction.user.id } },

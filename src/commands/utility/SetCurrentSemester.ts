@@ -31,7 +31,10 @@ export default class SetCurrentSemester extends Command {
         
         const config: Configs | undefined = (await Configs.findAll())[0];
         if (config == undefined) {
-            await Configs.create({ current_semester_id: currentSemester.id });
+            await Configs.create({ 
+                current_semester_id: currentSemester.id,
+                current_semester_name: currentSemester.name
+             });
         } else {
             config.current_semester_id = currentSemester.id;
             config.save();
