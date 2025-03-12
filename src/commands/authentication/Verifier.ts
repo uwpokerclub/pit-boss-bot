@@ -7,6 +7,7 @@ import { VerificationCodes } from "../../base/db/models/VerificationCodes.js";
 import { VerificationAttempts } from "../../base/db/models/VerificationAttempts.js";
 import { sendVerificationEmail } from "../../base/utility/BrevoClient.js";
 import { uwpscApiAxios } from "../../base/utility/Axios.js";
+import { Configs } from "../../base/db/models/Configs.js";
 
 
 const emailRegExp: RegExp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
@@ -337,7 +338,8 @@ export default class Verifier extends Command {
         })).data[0].id;
 
 
-        // TODO: register member for current semester
+        await this.currentSemesterRegistration(buttonInteraction, userId);
+
         await Members.update(
             { user_id: userId },
             { where: { discord_client_id: buttonInteraction.user.id } },
@@ -345,5 +347,39 @@ export default class Verifier extends Command {
 
         this.assignVerifiedRole(buttonInteraction);
         buttonInteraction.followUp({ content: `**Verification successful**. Your discord account is now linked to ${email}!`, flags: MessageFlags.Ephemeral });
+    }
+
+    private async currentSemesterRegistration(buttonInteraction: ButtonInteraction, userId: number) {
+
+        const currentSemesterConfigRes = (await Configs.findAll())[0];
+        if (!currentSemesterConfigRes) {
+            buttonInteraction.followUp({ content: "Cannot register to the current semester at the moment. Please use `\register` later.", flags: MessageFlags.Ephemeral });
+            return;
+        }
+
+        const currentSemesterId = currentSemesterConfigRes.dataValues.current_semester_id;
+        const currentSemesterName = currentSemesterConfigRes.dataValues.current_semester_name;
+
+        const existingMembership = (await uwpscApiAxios.get("/memberships", {
+            params: {userId: userId, semesterId: currentSemesterId}
+        })).data[0];
+
+        let membershipId: string;
+        if (existingMembership == undefined) {
+            const newMembership = (await uwpscApiAxios.post("/memberships", {
+                userId: userId, semesterId: currentSemesterId
+            }));
+            membershipId = newMembership.data.id;
+        } else {
+            membershipId = existingMembership.id;
+        }
+        
+        
+        await Members.update(
+            { membership_id: membershipId },
+            { where: { discord_client_id: buttonInteraction.user.id } },
+        );
+        await buttonInteraction.followUp({ content: `You are registered to the current semester, ${currentSemesterName}.`, flags: MessageFlags.Ephemeral });
+        
     }
 }
