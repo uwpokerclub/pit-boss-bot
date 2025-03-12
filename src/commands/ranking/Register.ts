@@ -72,7 +72,6 @@ export default class Register extends Command {
                     const newMembership = (await uwpscApiAxios.post("/memberships", {
                         userId: userId, semesterId: currentSemesterId
                     }));
-                    console.log(newMembership);
                     membershipId = newMembership.data.id;
                 } else {
                     membershipId = existingMembership.id;
@@ -81,7 +80,7 @@ export default class Register extends Command {
                 
                 await Members.update(
                     { membership_id: membershipId },
-                    { where: { user_id: userId } },
+                    { where: { discord_client_id: clientId } },
                 );
                 await interaction.editReply({ content: `You are registered to the current semester, ${currentSemesterName}.`, components: [] });
                 
