@@ -1,8 +1,10 @@
-import { ApplicationCommandOptionType, ChatInputCommandInteraction, MessageFlags, PermissionFlagsBits } from "discord.js";
+import { ApplicationCommandOptionType, ChatInputCommandInteraction, GuildMember, GuildMemberRoleManager, MessageFlags, PermissionFlagsBits, Role } from "discord.js";
 import type BossClient from "../../base/classes/BossClient.js";
 import Command from "../../base/classes/Command.js";
 import Category from "../../base/enums/Category.js";
 import { VerificationAttempts } from "../../base/db/models/VerificationAttempts.js";
+import { Members } from "../../base/db/models/Members.js";
+import { VerificationCodes } from "../../base/db/models/VerificationCodes.js";
 
 export default class ResetMember extends Command {
     constructor(client: BossClient) {
@@ -21,6 +23,11 @@ export default class ResetMember extends Command {
                     description: "The user to be reset",
                     type: ApplicationCommandOptionType.User,
                     required: true
+                },
+                {
+                    name: "hard",
+                    description: "Hard reset target user. Cleans all data and un-verify",
+                    type: ApplicationCommandOptionType.Boolean,
                 }
             ]
         });
@@ -37,8 +44,16 @@ export default class ResetMember extends Command {
         await VerificationAttempts.destroy({where: {discord_client_id: targetUserId}});
 
         //TODO: add ability to revert user verification with additional command parameter --hard.
+        const hardResetParam = interaction.options.get("hard");
+        if (hardResetParam && hardResetParam.value) {
+            await Members.destroy({where: {discord_client_id: targetUserId}});
+            await VerificationCodes.destroy({where: {discord_client_id: targetUserId}});
+            const verifiedRole: Role = (await interaction.guild?.roles.fetch(this.client.config.discord.verifiedRoleId))!;
+            const member: GuildMember = (await interaction.guild?.members.fetch(interaction.user.id))!;
+            (member.roles as GuildMemberRoleManager).remove(verifiedRole);
+        }
 
-        interaction.reply({ content: `${targetUserParam.user?.username}'s account has been reset`, flags: MessageFlags.Ephemeral });
+        interaction.reply({ content: `${targetUserParam.user?.username}'s account has been ${hardResetParam && hardResetParam.value ? "HARD " : "" }reset.`, flags: MessageFlags.Ephemeral });
     }
 
 }
