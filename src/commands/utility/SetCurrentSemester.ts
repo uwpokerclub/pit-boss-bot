@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, MessageFlags, PermissionFlagsBits } from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags, PermissionFlagsBits, TextChannel } from "discord.js";
 import type BossClient from "../../base/classes/BossClient.js";
 import Command from "../../base/classes/Command.js";
 import Category from "../../base/enums/Category.js";
@@ -42,7 +42,8 @@ export default class SetCurrentSemester extends Command {
 
         interaction.reply({ content: `The current semester is set to ${currentSemester.name}`, flags: MessageFlags.Ephemeral });
 
-        // TODO: send message tagging verified users, reminding users to register to the new semester.
+        const { verifiedRoleId } = this.client.config.discord;
+        await (interaction.channel as TextChannel).send({ content: `<@&${verifiedRoleId}> New semester ${currentSemester.name} started!! To access up-to-date information, please register to the new semester using \`/register\`.` });
     }
 
 }
