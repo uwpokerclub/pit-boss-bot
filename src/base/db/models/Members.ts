@@ -6,6 +6,7 @@ export class Members extends Model {
     declare discord_client_id: string; 
     declare email: string; 
     declare user_id: number;
+    declare membership_id: string;
 }
 
 
@@ -23,6 +24,10 @@ const modelAttributes: ModelAttributes<Model<any, any>> = {
     },
     user_id: {
         type: DataTypes.NUMBER,
+        unique: true,
+    },
+    membership_id: {
+        type: DataTypes.STRING,
         unique: true,
     }
 };
