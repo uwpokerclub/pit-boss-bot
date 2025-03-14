@@ -7,6 +7,7 @@ import { VerificationCodes } from "../../base/db/models/VerificationCodes.js";
 import { VerificationAttempts } from "../../base/db/models/VerificationAttempts.js";
 import { sendVerificationEmail } from "../../base/utility/BrevoClient.js";
 import { uwpscApiAxios } from "../../base/utility/Axios.js";
+import { Configs } from "../../base/db/models/Configs.js";
 
 
 const emailRegExp: RegExp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
@@ -20,10 +21,10 @@ export default class Verifier extends Command {
     constructor(client: BossClient) {
         super(client, {
             name: "verifier",
-            description: "Displays the verification form.",
-            category: Category.Authentication,
-            syntax: "/login_persist",
-            helpDescription: "Displays a account verification form that will allow members to link their discord account with their account on the website.",
+            description: "Sends the member verification interface.",
+            category: Category.Admin,
+            syntax: "/verifier",
+            helpDescription: "Sends the member verification interface that allow members to link their discord account with their registered email.",
             defaultMemberPerm: PermissionFlagsBits.Administrator,   // users with administrative access in the guild have access to this command
             dmPerm: false,
             coolDown: 3,
@@ -59,6 +60,10 @@ export default class Verifier extends Command {
 
         this.client.on(Events.InteractionCreate, async (buttonInteraction) => {
             if (!(buttonInteraction instanceof ButtonInteraction)) {
+                return;
+            }
+
+            if (buttonInteraction.customId != `verifyEmailButton-${interaction.id}` && buttonInteraction.customId != `verifyCodeButton-${interaction.id}`) {
                 return;
             }
 
@@ -312,7 +317,6 @@ export default class Verifier extends Command {
             },
         }))[0]?.dataValues.email;
 
-        // FIXME: this may be a problem, reading dataValue of undefined
         return email;
     }
 
@@ -333,6 +337,9 @@ export default class Verifier extends Command {
             params: {email: email}
         })).data[0].id;
 
+
+        await this.currentSemesterRegistration(buttonInteraction, userId);
+
         await Members.update(
             { user_id: userId },
             { where: { discord_client_id: buttonInteraction.user.id } },
@@ -340,5 +347,39 @@ export default class Verifier extends Command {
 
         this.assignVerifiedRole(buttonInteraction);
         buttonInteraction.followUp({ content: `**Verification successful**. Your discord account is now linked to ${email}!`, flags: MessageFlags.Ephemeral });
+    }
+
+    private async currentSemesterRegistration(buttonInteraction: ButtonInteraction, userId: number) {
+
+        const currentSemesterConfigRes = (await Configs.findAll())[0];
+        if (!currentSemesterConfigRes) {
+            buttonInteraction.followUp({ content: "Cannot register to the current semester at the moment. Please use `\register` later.", flags: MessageFlags.Ephemeral });
+            return;
+        }
+
+        const currentSemesterId = currentSemesterConfigRes.dataValues.current_semester_id;
+        const currentSemesterName = currentSemesterConfigRes.dataValues.current_semester_name;
+
+        const existingMembership = (await uwpscApiAxios.get("/memberships", {
+            params: {userId: userId, semesterId: currentSemesterId}
+        })).data[0];
+
+        let membershipId: string;
+        if (existingMembership == undefined) {
+            const newMembership = (await uwpscApiAxios.post("/memberships", {
+                userId: userId, semesterId: currentSemesterId
+            }));
+            membershipId = newMembership.data.id;
+        } else {
+            membershipId = existingMembership.id;
+        }
+        
+        
+        await Members.update(
+            { membership_id: membershipId },
+            { where: { discord_client_id: buttonInteraction.user.id } },
+        );
+        await buttonInteraction.followUp({ content: `You are registered to the current semester, ${currentSemesterName}.`, flags: MessageFlags.Ephemeral });
+        
     }
 }

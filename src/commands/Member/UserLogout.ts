@@ -10,10 +10,10 @@ export default class UserLogout extends Command {
     constructor(client: BossClient) {
         super(client, {
             name: "logout",
-            description: "Logs user out, removes user's access to other bot commands",
-            category: Category.Authentication,
+            description: "Logs user out, removes user's access to other bot commands.",
+            category: Category.Member,
             syntax: "/logout",
-            helpDescription: "unlink your discord account to the current email address, removes your access to ranking commands",
+            helpDescription: "Unlink your discord account to the current email address, removes your access to ranking commands.",
             defaultMemberPerm: PermissionFlagsBits.UseApplicationCommands,
             dmPerm: false,
             coolDown: 3,
