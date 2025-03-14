@@ -9,10 +9,10 @@ export default class SetCurrentSemester extends Command {
     constructor(client: BossClient) {
         super(client, {
             name: "set_current_semester",
-            description: "Set the current semester as the last semester created",
-            category: Category.Utility,
+            description: "Set the current semester as the last semester created.",
+            category: Category.Admin,
             syntax: "/set_current_semester",
-            helpDescription: "Set the current semester as the last semester created",
+            helpDescription: "Set the current semester as the last semester created.",
             defaultMemberPerm: PermissionFlagsBits.Administrator,
             dmPerm: false,
             coolDown: 3,

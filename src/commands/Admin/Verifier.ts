@@ -21,10 +21,10 @@ export default class Verifier extends Command {
     constructor(client: BossClient) {
         super(client, {
             name: "verifier",
-            description: "Displays the verification form.",
-            category: Category.Authentication,
-            syntax: "/login_persist",
-            helpDescription: "Displays a account verification form that will allow members to link their discord account with their account on the website.",
+            description: "Sends the member verification interface.",
+            category: Category.Admin,
+            syntax: "/verifier",
+            helpDescription: "Sends the member verification interface that allow members to link their discord account with their registered email.",
             defaultMemberPerm: PermissionFlagsBits.Administrator,   // users with administrative access in the guild have access to this command
             dmPerm: false,
             coolDown: 3,

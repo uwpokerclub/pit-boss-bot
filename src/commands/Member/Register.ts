@@ -11,10 +11,10 @@ export default class Register extends Command {
     constructor(client: BossClient) {
         super(client, {
             name: "register",
-            description: "Registers user to current semester",
-            category: Category.Ranking,
+            description: "Registers user to current semester.",
+            category: Category.Member,
             syntax: "/register",
-            helpDescription: "Registers user to current semester",
+            helpDescription: "Registers user to current semester.",
             defaultMemberPerm: PermissionFlagsBits.UseApplicationCommands,
             dmPerm: false,
             coolDown: 3,

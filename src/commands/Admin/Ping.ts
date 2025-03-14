@@ -9,10 +9,10 @@ export default class Ping extends Command {
         super(client, {
             name: "ping",
             description: "Replies with pong!",
-            category: Category.Utility,
-            syntax: "/help",
-            helpDescription: "",
-            defaultMemberPerm: PermissionFlagsBits.UseApplicationCommands,
+            category: Category.Admin,
+            syntax: "/ping",
+            helpDescription: "Test the bot's responsiveness.",
+            defaultMemberPerm: PermissionFlagsBits.Administrator,
             dmPerm: false,
             coolDown: 3,
             options: []

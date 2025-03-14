@@ -10,10 +10,10 @@ export default class ResetMember extends Command {
     constructor(client: BossClient) {
         super(client, {
             name: "reset_member",
-            description: "Reset the member's account information, including their remaining failed verification count",
-            category: Category.Utility,
-            syntax: "/reset_member @member",
-            helpDescription: "",
+            description: "Reset the member's account information, including their remaining failed verification count.",
+            category: Category.Admin,
+            syntax: "/reset_member @member (hard)",
+            helpDescription: "Reset the member's remaining failed verification count. If the optional parameter hard is True, all of member's data will be destroyed and the member will be un-verified.",
             defaultMemberPerm: PermissionFlagsBits.Administrator,
             dmPerm: false,
             coolDown: 3,
@@ -43,7 +43,6 @@ export default class ResetMember extends Command {
         const targetUserId: string  = targetUserParam.user!.id;
         await VerificationAttempts.destroy({where: {discord_client_id: targetUserId}});
 
-        //TODO: add ability to revert user verification with additional command parameter --hard.
         const hardResetParam = interaction.options.get("hard");
         if (hardResetParam && hardResetParam.value) {
             await Members.destroy({where: {discord_client_id: targetUserId}});

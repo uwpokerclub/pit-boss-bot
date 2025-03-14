@@ -1,7 +1,6 @@
 enum Category {
-    Ranking = "Ranking",
-    Authentication = "Authentication", 
-    Utility = "Utility",
+    Member = "Member",
+    Admin = "Admin"
 }
 
 export default Category;
