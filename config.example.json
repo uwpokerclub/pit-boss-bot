@@ -14,5 +14,8 @@
       "cookieName": "AUTH_COOKIE_NAME_HERE",
       "username": "API_CRED_USERNAME_HERE", 
       "password": "API_CRED_PASSWORD_HERE"
+  },
+  "misc": {
+      "logoUrl": "LOGO_URL_HERE"
   }
 }

@@ -82,8 +82,8 @@ Navigate to the `Campaigns` menu from your dashboard, then into the `Templates` 
 **cookieName:** the name of the authentication cookie. Likely going to be one of `uwpsc-session-id` or `uwpsc-dev-session-id`.\
 **uwpsc.username & uwpsc.password:** login credentials.
 
-
-
+### Misc
+**logoUrl:** where the club's logo image is hosted.
 
 
 
