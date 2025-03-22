@@ -64,24 +64,24 @@ export default class IndividualRanking extends Command {
             return;
         }
 
+        const currentSemesterName = currentSemesterConfigRes.dataValues.current_semester_name;
         const userRegisteredName: string = `${memberRes.dataValues.first_name} ${memberRes.dataValues.last_name}`;
         const userId: number = memberRes.dataValues.user_id;
         const position: string = rankingRes.data.position;
         const points: string = rankingRes.data.points;
-        let qualificationStatus: string;
         let color: ColorResolvable;
         if (parseInt(position) <= 100) {
-            qualificationStatus = "Qualified";
             color = [10, 149, 72];
         } else if (parseInt(position) <= 120) {
-            qualificationStatus = "Waitlisted";
             color = [229,162,103];
         } else {
-            qualificationStatus = "Not Qualified";
             color = [163, 0, 0];
         }
 
+        const avatarUrl: string = interaction.user.displayAvatarURL()
         const memberProfileEmbed = new EmbedBuilder()
+            .setTitle(`${currentSemesterName} Performance`)
+            .setAuthor({ name: `${interaction.user.displayName}`, iconURL: `${avatarUrl}`})
             .setColor(color)
             .setThumbnail(this.client.config.misc.logoUrl)
             .addFields(
@@ -90,7 +90,6 @@ export default class IndividualRanking extends Command {
                 { name: "\u200b", value: "\u200b" },
                 { name: "Position", value: `${position}`, inline: true },
                 { name: "Points", value: `${points}`, inline: true },
-                { name: "Final tournament status", value: `${qualificationStatus}`, inline: true },
             );
 
         interaction.reply({ embeds: [memberProfileEmbed], flags: MessageFlags.Ephemeral });
