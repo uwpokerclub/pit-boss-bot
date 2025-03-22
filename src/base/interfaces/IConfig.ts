@@ -15,4 +15,7 @@ export default interface IConfig {
         username: string;
         password: string;
     };
+    misc: {
+        logoUrl: string;
+    };
 }

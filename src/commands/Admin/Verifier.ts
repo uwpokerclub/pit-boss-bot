@@ -333,15 +333,19 @@ export default class Verifier extends Command {
 
         const email: string = (await this.getUserEmail(buttonInteraction.user.id))!;
 
-        const userId: number = (await uwpscApiAxios.get("/users", {
+        const targetUser = (await uwpscApiAxios.get("/users", {
             params: {email: email}
-        })).data[0].id;
+        })).data[0];
 
 
-        await this.currentSemesterRegistration(buttonInteraction, userId);
+        await this.currentSemesterRegistration(buttonInteraction, targetUser.id);
 
         await Members.update(
-            { user_id: userId },
+            { 
+                user_id: targetUser.id,
+                first_name: targetUser.firstName,
+                last_name: targetUser.lastName
+            },
             { where: { discord_client_id: buttonInteraction.user.id } },
         );
 
