@@ -4,6 +4,7 @@ export default interface IConfig {
         clientId: string;
         guildId: string;
         verifiedRoleId: string;
+        botUsageChannelId: string;
     };
     brevo: {
         brevoKey: string, 

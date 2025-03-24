@@ -56,6 +56,12 @@ export default class CommandHandler extends Event {
             return;
         }
 
+        const botCommandChannelId: string = this.client.config.discord.botUsageChannelId;
+        if (!command.global && interaction.channelId != botCommandChannelId) {
+            interaction.reply({ content: `You can only use this command in the dedicated channel. Please try again in <#${botCommandChannelId}>.`, flags: MessageFlags.Ephemeral });
+            return;
+        }
+
         command.execute(interaction);
     }
 }

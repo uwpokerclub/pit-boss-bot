@@ -13,6 +13,7 @@ export default abstract class Command {
     defaultMemberPerm: bigint;
     dmPerm: boolean;
     coolDown: number;
+    global: boolean;
 
     constructor(client: BossClient, options: ICommandOptions) {
         this.client = client;
@@ -24,6 +25,7 @@ export default abstract class Command {
         this.defaultMemberPerm = options.defaultMemberPerm;
         this.dmPerm = options.dmPerm;
         this.coolDown = options.coolDown;
+        this.global = options.global;
     }
 
     abstract execute(interaction: ChatInputCommandInteraction): void;
