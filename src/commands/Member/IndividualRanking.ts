@@ -65,8 +65,6 @@ export default class IndividualRanking extends Command {
         }
 
         const currentSemesterName = currentSemesterConfigRes.dataValues.current_semester_name;
-        const userRegisteredName: string = `${memberRes.dataValues.first_name} ${memberRes.dataValues.last_name}`;
-        const userId: number = memberRes.dataValues.user_id;
         const position: string = rankingRes.data.position;
         const points: string = rankingRes.data.points;
         let color: ColorResolvable;
@@ -85,9 +83,6 @@ export default class IndividualRanking extends Command {
             .setColor(color)
             .setThumbnail(this.client.config.misc.logoUrl)
             .addFields(
-                { name: "Name", value: `${userRegisteredName}`, inline: true },
-                { name: "ID", value: `${userId}`, inline: true },
-                { name: "\u200b", value: "\u200b" },
                 { name: "Position", value: `${position}`, inline: true },
                 { name: "Points", value: `${points}`, inline: true },
             );

@@ -343,8 +343,6 @@ export default class Verifier extends Command {
         await Members.update(
             { 
                 user_id: targetUser.id,
-                first_name: targetUser.firstName,
-                last_name: targetUser.lastName
             },
             { where: { discord_client_id: buttonInteraction.user.id } },
         );

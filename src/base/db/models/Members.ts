@@ -4,8 +4,6 @@ import { sqliteDB } from "../sqliteDB.js";
 
 export class Members extends Model {
     declare discord_client_id: string; 
-    declare first_name: string;
-    declare last_name: string;
     declare email: string; 
     declare user_id: number;
     declare membership_id: string;
@@ -18,12 +16,6 @@ const modelAttributes: ModelAttributes<Model<any, any>> = {
         allowNull: false,
         unique: true,
         primaryKey: true,
-    }, 
-    first_name: {
-        type: DataTypes.STRING,
-    },
-    last_name: {
-        type: DataTypes.STRING,
     },
     email: {
         type: DataTypes.STRING,
