@@ -9,7 +9,6 @@
     "build": "tsc --build",
     "start": "npm run clean && npm run build && node dist/src/scripts/deployCommands.js && node dist/src/index.js",
     "startNoClean": "npm run build && node dist/src/index.js",
-
     "cleanDB": "npm run build && node dist/src/devScripts/cleanDB.js",
     "populate": "npm run build && node dist/src/devScripts/populatePostgres.js"
   },
@@ -39,7 +38,6 @@
     "@getbrevo/brevo": "^2.2.0",
     "axios": "^1.7.9",
     "discord.js": "^14.18.0",
-    "glob": "^11.0.0",
     "sequelize": "^6.37.5",
     "sqlite3": "^5.1.7"
   }
