@@ -15,7 +15,8 @@ export default class Ping extends Command {
             defaultMemberPerm: PermissionFlagsBits.Administrator,
             dmPerm: false,
             coolDown: 3,
-            options: []
+            global: false,
+            options: [],
         })
     }
 

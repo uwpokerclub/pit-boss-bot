@@ -18,7 +18,8 @@ export default class IndividualRanking extends Command {
             defaultMemberPerm: PermissionFlagsBits.UseApplicationCommands,
             dmPerm: false,
             coolDown: 3,
-            options: []
+            global: false,
+            options: [],
         });
     }
 

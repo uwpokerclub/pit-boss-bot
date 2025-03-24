@@ -16,7 +16,8 @@ export default class SetCurrentSemester extends Command {
             defaultMemberPerm: PermissionFlagsBits.Administrator,
             dmPerm: false,
             coolDown: 3,
-            options: []
+            global: false,
+            options: [],
         });
     }
 

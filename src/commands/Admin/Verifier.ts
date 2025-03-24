@@ -28,7 +28,8 @@ export default class Verifier extends Command {
             defaultMemberPerm: PermissionFlagsBits.Administrator,   // users with administrative access in the guild have access to this command
             dmPerm: false,
             coolDown: 3,
-            options: []      
+            global: true,
+            options: [],   
         });
         this.verifiedRoleId = client.config.discord.verifiedRoleId;
     }

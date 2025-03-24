@@ -10,4 +10,5 @@ export default interface ICommand {
     defaultMemberPerm: bigint;
     dmPerm: boolean;
     coolDown: number;
+    global: boolean;    // whether the command can be used in any channel or only in the dedicated channel
 }

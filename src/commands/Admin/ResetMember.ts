@@ -17,6 +17,7 @@ export default class ResetMember extends Command {
             defaultMemberPerm: PermissionFlagsBits.Administrator,
             dmPerm: false,
             coolDown: 3,
+            global: false,
             options: [
                 {
                     name: "target_user",
@@ -29,7 +30,7 @@ export default class ResetMember extends Command {
                     description: "Hard reset target user. Cleans all data and un-verify",
                     type: ApplicationCommandOptionType.Boolean,
                 }
-            ]
+            ],
         });
     }
 

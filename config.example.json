@@ -3,7 +3,8 @@
     "token": "BOT_TOKEN_HERE", 
     "clientId": "BOT_CLIENT_ID_HERE",
     "guildId": "SERVER_ID_HERE",
-    "verifiedRoleId": "VERIFIED_ROLE_ID_HERE"
+    "verifiedRoleId": "VERIFIED_ROLE_ID_HERE",
+    "botUsageChannelId": " BOT_USAGE_CHANNEL_ID_HERE"
   },
   "brevo": {
     "brevoKey": "BREVO_API_KEY_HERE",
