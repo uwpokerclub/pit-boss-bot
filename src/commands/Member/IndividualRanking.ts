@@ -77,7 +77,7 @@ export default class IndividualRanking extends Command {
             color = [163, 0, 0];
         }
 
-        const avatarUrl: string = interaction.user.displayAvatarURL()
+        const avatarUrl: string = interaction.user.displayAvatarURL();
         const memberProfileEmbed = new EmbedBuilder()
             .setTitle(`${currentSemesterName} Performance`)
             .setAuthor({ name: `${interaction.user.displayName}`, iconURL: `${avatarUrl}`})

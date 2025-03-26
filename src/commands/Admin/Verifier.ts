@@ -338,22 +338,20 @@ export default class Verifier extends Command {
             params: {email: email}
         })).data[0];
 
-
-        await this.currentSemesterRegistration(buttonInteraction, targetUser.id);
-
         await Members.update(
             { 
                 user_id: targetUser.id,
             },
             { where: { discord_client_id: buttonInteraction.user.id } },
         );
-
+        
         this.assignVerifiedRole(buttonInteraction);
         buttonInteraction.followUp({ content: `**Verification successful**. Your discord account is now linked to ${email}!`, flags: MessageFlags.Ephemeral });
+        
+        await this.currentSemesterRegistration(buttonInteraction, targetUser.id);
     }
 
     private async currentSemesterRegistration(buttonInteraction: ButtonInteraction, userId: number) {
-
         const currentSemesterConfigRes = (await Configs.findAll())[0];
         if (!currentSemesterConfigRes) {
             buttonInteraction.followUp({ content: "Cannot register to the current semester at the moment. Please use `\register` later.", flags: MessageFlags.Ephemeral });
