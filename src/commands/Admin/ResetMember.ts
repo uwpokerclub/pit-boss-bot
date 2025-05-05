@@ -14,7 +14,7 @@ export default class ResetMember extends Command {
             category: Category.Admin,
             syntax: "/reset_member @member (hard)",
             helpDescription: "Reset the member's remaining failed verification count. If the optional parameter hard is True, all of member's data will be destroyed and the member will be un-verified.",
-            defaultMemberPerm: PermissionFlagsBits.Administrator,
+            defaultMemberPerm: PermissionFlagsBits.ModerateMembers,
             dmPerm: false,
             coolDown: 3,
             global: false,

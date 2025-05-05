@@ -44,10 +44,10 @@ Visit [Discord Developer portal](https://discord.com/developers/applications) to
 Click the `New Application` button.
 
 #### discord.token
-Navigate to the `Bot` menu found on the left side of the interface once you created the application. Click the blue button `Reset Token` and copy the new token.
+Navigate to the `Bot` menu found on the left side of the interface once you created the application. Click the blue `Reset Token` button and copy the new token.
 
 #### discord.clientId
-Navigate to the `OAuth2` menu found on the left side of the interface once you created the application. Under the Client Information section, you can find the clientId of the bot.
+Navigate to the `OAuth2` menu found on the left side of the interface once you created the application. Under the `Client Information` section, you can find the clientId of the bot.
 
 #### discord.guildId
 Right click on the server you wish to invite the bot to and click the `Copy Server ID` option.
@@ -57,6 +57,11 @@ This is the id of the role the bot will assign to users after they verify their 
 
 Create a role in the desired discord server, right click on the role in server setting and hit the `Copy Role ID` option to copy its ID.
 Make sure the verified role you just created is placed **below** the your bot's role.
+
+#### discord.botUsageChannelId
+This is the id of the sole channel in the server members can engage with the bot in. 
+
+Right click on the desired server channel and select the `Copy Channel ID` option to copy its ID.
 
 #### Additional information
 Make sure the bot has the following permissions in the desired server:
@@ -73,7 +78,7 @@ After creating your account, click on your profile and navigate to the `SMTP & A
 
 #### Brevo.verification_email_template_id
 Contact an admin / contributor of the project for the template url and paste it into your browser. Click `Import this template`. You will be brought to an editing page. Do not modify anything. Hit `Save & quit` then `Save & Activate`. 
-Navigate to the `Campaigns` menu from your dashboard, then into the `Templates` submenu. Find the template you just imported, and copy the number after "#" under the name of the template.
+Navigate to the `Campaigns` menu from your dashboard, then into the `Templates` submenu. Find the template you just imported, and copy the number after `#` under the name of the template.
 
 ### UWPSC api
 **_Note: You will also need to have the [API server](https://github.com/uwpokerclub/api) running locally as well._**
@@ -83,7 +88,7 @@ Navigate to the `Campaigns` menu from your dashboard, then into the `Templates` 
 **uwpsc.username & uwpsc.password:** login credentials.
 
 ### Misc
-**logoUrl:** where the club's logo image is hosted.
+**logoUrl:** where the club's logo image is hosted. Contact an admin / contributor of the project for the the url if you do not have it.
 
 
 
@@ -120,7 +125,7 @@ The sqlite schemas should be initialized automatically upon initial execution of
 ## Scripts
 
 ### Manual command registration
-To register the commands to designated guild manually, run this following terminal command after building the program:
+To register the commands to designated guild separately, run this following terminal command after building the program:
 ```sh
 node dist/src/scripts/deployCommands.js 
 ```

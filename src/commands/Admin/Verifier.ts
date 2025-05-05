@@ -25,7 +25,7 @@ export default class Verifier extends Command {
             category: Category.Admin,
             syntax: "/verifier",
             helpDescription: "Sends the member verification interface that allow members to link their discord account with their registered email.",
-            defaultMemberPerm: PermissionFlagsBits.Administrator,   // users with administrative access in the guild have access to this command
+            defaultMemberPerm: PermissionFlagsBits.ModerateMembers,   // users with "timeout members" perms in the guild have access to this command
             dmPerm: false,
             coolDown: 3,
             global: true,
