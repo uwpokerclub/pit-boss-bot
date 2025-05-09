@@ -24,7 +24,7 @@ export async function sqliteDBInit() {
     await sqliteDB.sync({ alter: true });
 }
 
-//baseDirName must the name of a sub dir under src
+
 function getFiles(directory: string): string[] {
     const files: string[] = [];
     

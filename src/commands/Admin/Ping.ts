@@ -12,7 +12,7 @@ export default class Ping extends Command {
             category: Category.Admin,
             syntax: "/ping",
             helpDescription: "Test the bot's responsiveness.",
-            defaultMemberPerm: PermissionFlagsBits.Administrator,
+            defaultMemberPerm: PermissionFlagsBits.ModerateMembers,
             dmPerm: false,
             coolDown: 3,
             global: false,

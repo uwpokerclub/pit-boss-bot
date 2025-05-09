@@ -13,7 +13,7 @@ export default class SetCurrentSemester extends Command {
             category: Category.Admin,
             syntax: "/set_current_semester",
             helpDescription: "Set the current semester as the last semester created.",
-            defaultMemberPerm: PermissionFlagsBits.Administrator,
+            defaultMemberPerm: PermissionFlagsBits.ModerateMembers,
             dmPerm: false,
             coolDown: 3,
             global: false,
