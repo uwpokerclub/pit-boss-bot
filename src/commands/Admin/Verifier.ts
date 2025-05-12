@@ -89,8 +89,11 @@ export default class Verifier extends Command {
 
             if (buttonInteraction.customId == `verifyEmailButton-${interaction.id}`) {
                 const modalInputEmail: string = await this.displayLogInWithEmailModal(buttonInteraction);
-                if (await this.isExistingEmail(modalInputEmail)) {
+                const emailDuplicate: boolean = await this.isDuplicateEmail(modalInputEmail);
+                if ((await this.isExistingEmail(modalInputEmail)) && !emailDuplicate) {
                     this.distributeCode(buttonInteraction.user.id, modalInputEmail);
+                } else if (emailDuplicate) {
+                    this.invalidEmailHandling(buttonInteraction.user.id, `${interaction.user.id}_placeholder_email_address`);
                 } else {
                     this.invalidEmailHandling(buttonInteraction.user.id, modalInputEmail);
                 }
@@ -136,7 +139,7 @@ export default class Verifier extends Command {
 
         // wait for the modal submission
         const filter = (ModalSubmitInteraction: ModalSubmitInteraction) => ModalSubmitInteraction.customId == `verifyEmailModal-${interaction.id}`;
-        let modalInputEmail: string = "";
+        let modalInputEmail: string = `${interaction.user.id}_placeholder_email_address`;
         try {
             const modalInteraction: ModalSubmitInteraction = await interaction.awaitModalSubmit({filter: filter, time: 600000});
             modalInputEmail = modalInteraction.fields.getTextInputValue("emailModalInput");
@@ -296,7 +299,28 @@ export default class Verifier extends Command {
         const res = await uwpscApiAxios.get("/users", {
             params: {email: modalInputEmail}
         });
-        return res.data.length != 0;
+
+        if (!(res.data.length != 0)) {
+            return false;
+        }
+        return true;
+        
+
+    }
+
+    private async isDuplicateEmail(modalInputEmail: string): Promise<boolean> {
+        const memberEntry: Members | undefined = (await Members.findAll({
+            where: {
+                email: modalInputEmail,
+            },
+        }))[0];
+
+        if (memberEntry != undefined) {
+            return true;
+        }
+        
+        return false;
+
     }
 
 
@@ -354,7 +378,7 @@ export default class Verifier extends Command {
     private async currentSemesterRegistration(buttonInteraction: ButtonInteraction, userId: number) {
         const currentSemesterConfigRes = (await Configs.findAll())[0];
         if (!currentSemesterConfigRes) {
-            buttonInteraction.followUp({ content: "Cannot register to the current semester at the moment. Please use `\register` later.", flags: MessageFlags.Ephemeral });
+            buttonInteraction.followUp({ content: "Cannot register to the current semester at the moment. Please use `/register` later.", flags: MessageFlags.Ephemeral });
             return;
         }
 
