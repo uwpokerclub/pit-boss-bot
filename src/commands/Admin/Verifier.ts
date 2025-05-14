@@ -300,13 +300,9 @@ export default class Verifier extends Command {
             params: {email: modalInputEmail}
         });
 
-        if (!(res.data.length != 0)) {
-            return false;
-        }
-        return true;
-        
-
+        return res.data.length != 0;
     }
+    
 
     private async isDuplicateEmail(modalInputEmail: string): Promise<boolean> {
         const memberEntry: Members | undefined = (await Members.findAll({
@@ -315,12 +311,7 @@ export default class Verifier extends Command {
             },
         }))[0];
 
-        if (memberEntry != undefined) {
-            return true;
-        }
-        
-        return false;
-
+        return memberEntry != undefined;
     }
 
 
