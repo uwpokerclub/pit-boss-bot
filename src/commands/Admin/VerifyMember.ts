@@ -51,15 +51,25 @@ export default class VerifyMember extends Command {
         const emailParam: string = interaction.options.getString("email") ?? "";
 
         if (!targetUserParam) {
-            interaction.reply({ content: "Invalid user provided", flags: MessageFlags.Ephemeral });
-            return;
-        }
-        if (!(await this.isExistingEmail(emailParam))) {
-            interaction.reply({ content: "Invalid email provided", flags: MessageFlags.Ephemeral });
+            interaction.reply({ content: "Invalid user provided.", flags: MessageFlags.Ephemeral });
             return;
         }
 
+        if (!(await this.isExistingEmail(emailParam))) {
+            interaction.reply({ content: "Invalid email provided.", flags: MessageFlags.Ephemeral });
+            return;
+        }
+        
         const targetUserClientId: string  = targetUserParam.user!.id;
+        const verifiedRole: Role = (await interaction.guild?.roles.fetch(this.verifiedRoleId))!;
+        if (verifiedRole.members.has(targetUserClientId)) {
+            interaction.reply({ content: "Verification failed. The target user's account is already verified.", flags: MessageFlags.Ephemeral });
+            return;
+        }
+        if (await this.isDuplicateEmail(emailParam)) {
+            interaction.reply({ content: "Verification failed. The given email has already been used by another member to verify their account." })
+        }
+
         await this.processSuccessfulVerification(interaction, targetUserClientId, emailParam);
 
         interaction.reply({ content: `**Verification successful**. ${targetUserParam.user?.username} account is now linked to ${emailParam}!`, flags: MessageFlags.Ephemeral });
@@ -77,6 +87,17 @@ export default class VerifyMember extends Command {
             params: {email: modalInputEmail}
         });
         return res.data.length != 0;
+    }
+
+
+    private async isDuplicateEmail(modalInputEmail: string): Promise<boolean> {
+        const memberEntry: Members | undefined = (await Members.findAll({
+            where: {
+                email: modalInputEmail,
+            },
+        }))[0];
+
+        return memberEntry != undefined;
     }
 
     
