@@ -8,6 +8,7 @@ import path from "node:path";
 import { brevoInit } from "../utility/BrevoClient.js";
 import {  sqliteDBInit } from "../db/sqliteDB.js";
 import { axiosInit } from "../utility/Axios.js";
+import type ButtonManager from "./ButtonManager.js";
 const require = createRequire(import.meta.url);
 
 
@@ -17,6 +18,7 @@ export default class BossClient extends Client {
     commands: Collection<string, Command>;
     subCommands: Collection<string, SubCommand>;
     coolDowns: Collection<string, Collection<string, number>>;
+    buttonManagers: Collection<string, ButtonManager>;
 
     constructor() {
         super({ intents: [
@@ -29,6 +31,7 @@ export default class BossClient extends Client {
         this.commands = new Collection();
         this.subCommands = new Collection();
         this.coolDowns = new Collection();
+        this.buttonManagers = new Collection();
     }
 
     async init() {
@@ -44,6 +47,7 @@ export default class BossClient extends Client {
     loadHandler(): void {
         this.handler.loadEvents();
         this.handler.loadCommands();
+        this.handler.loadButtonManagers();
     }
 
 }
