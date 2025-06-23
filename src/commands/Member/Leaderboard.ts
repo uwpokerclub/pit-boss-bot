@@ -86,7 +86,9 @@ export default class Leaderboard extends Command {
 
 
     private getUpdatedRankingEmbed(data: any, pageNumber: number, currentSemesterName: string, leaderboardLength: number, mobileMode: boolean): EmbedBuilder {
-        const calendarDate: string = `${new Date().getFullYear()}/${new Date().getMonth()}/${new Date().getDate()}`;
+        const easternNowTimeString: string = new Date().toLocaleString("en-US", { timeZone: "America/Toronto" })
+        const now: Date = new Date(easternNowTimeString);
+        const calendarDate: string = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()} Eastern Time`;
 
         const rankingEmbed = new EmbedBuilder()
             .setTitle(`${currentSemesterName} Ranking`)
