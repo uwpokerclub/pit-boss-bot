@@ -1,7 +1,6 @@
 import { ChatInputCommandInteraction, MessageFlags, PermissionFlagsBits, TextChannel } from "discord.js";
 import type BossClient from "../../base/classes/BossClient.js";
-import Command from "../../base/classes/Command.js";
-import Category from "../../base/enums/Category.js";
+import Command from "../../base/classes/Command.js"; import Category from "../../base/enums/Category.js";
 import { uwpscApiAxios } from "../../base/utility/Axios.js";
 import { Configs } from "../../base/db/models/Configs.js";
 
@@ -38,6 +37,7 @@ export default class SetCurrentSemester extends Command {
              });
         } else {
             config.current_semester_id = currentSemester.id;
+            config.current_semester_name = currentSemester.name
             config.save();
         }
 
