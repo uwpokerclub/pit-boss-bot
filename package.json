@@ -9,6 +9,11 @@
     "build": "tsc --build",
     "start": "npm run clean && npm run build && node dist/src/scripts/deployCommands.js && node dist/src/index.js",
     "startNoClean": "npm run build && node dist/src/index.js",
+
+    "registerCommands": "",
+    "dbUp": "(cd dist/src/sqliteMigration; npx sequelize-cli db:migrate)",
+    "dbDown": "(cd dist/src/sqliteMigration; npx sequelize-cli db:migrate:undo)",
+
     "cleanDB": "npm run build && node dist/src/devScripts/cleanDB.js",
     "populate": "npm run build && node dist/src/devScripts/populatePostgres.js"
   },
@@ -31,11 +36,12 @@
     "eslint-config-prettier": "^9.1.0",
     "globals": "^15.9.0",
     "prettier": "3.3.3",
+    "sequelize-cli": "^6.6.3",
     "typescript": "^5.6.2",
     "typescript-eslint": "^8.7.0"
   },
   "dependencies": {
-    "@getbrevo/brevo": "^2.2.0",
+    "@getbrevo/brevo": "^3.0.1",
     "axios": "^1.8.2",
     "discord.js": "^14.18.0",
     "sequelize": "^6.37.5",

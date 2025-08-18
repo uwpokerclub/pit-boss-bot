@@ -21,7 +21,6 @@ export async function sqliteDBInit() {
         schemaInit();
     }));
 
-    await sqliteDB.sync({ alter: false });
 }
 
 

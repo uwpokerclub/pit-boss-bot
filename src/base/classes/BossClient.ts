@@ -6,7 +6,7 @@ import Handler from "./Handler.js";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { brevoInit } from "../utility/BrevoClient.js";
-import {  sqliteDBInit } from "../db/sqliteDB.js";
+import { sqliteDBInit } from "../db/sqliteDB.js";
 import { axiosInit } from "../utility/Axios.js";
 import type ButtonManager from "./ButtonManager.js";
 const require = createRequire(import.meta.url);
