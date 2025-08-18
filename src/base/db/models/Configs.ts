@@ -13,6 +13,7 @@ const modelAttributes: ModelAttributes<Model<any, any>> = {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
+        primaryKey: true,
     },
     current_semester_name: {
         type: DataTypes.STRING,
