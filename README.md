@@ -119,15 +119,24 @@ Note that the second option cleans the build folder, rebuilds the program, and r
 
 
 ## Migrations
-The sqlite schemas should be initialized automatically upon initial execution of the program.
+### Creating a new migration
+To create a new migration, run the following command.
+```
+NAME=new-migration-name-example npm run createMigration 
+```
 
+### Running migrations
+To run the most recent migrations, you can run the command
+```
+npm run dbUp
+```
 
 ## Scripts
 
 ### Manual command registration
 To register the commands to designated guild separately, run this following terminal command after building the program:
 ```sh
-node dist/src/scripts/deployCommands.js 
+npm run registerCommands
 ```
 
 
