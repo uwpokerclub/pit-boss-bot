@@ -7,6 +7,7 @@ import { VerificationCodes } from "../../base/db/models/VerificationCodes.js";
 import { VerificationAttempts } from "../../base/db/models/VerificationAttempts.js";
 import { Configs } from "../../base/db/models/Configs.js";
 import { sendVerificationEmail } from "../../base/utility/BrevoClient.js";
+import axios from "axios";
 
 
 const emailRegExp: RegExp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
@@ -49,7 +50,26 @@ export default class VerifierButtonManager extends ButtonManager {
         if (buttonName == `verifyEmailButton`) {
             const modalInputEmail: string = await this.displayLogInWithEmailModal(interaction);
             const emailDuplicate: boolean = await this.isDuplicateEmail(modalInputEmail);
-            if ((await this.isExistingEmail(modalInputEmail)) && !emailDuplicate) {
+            let givenEmailExists;
+            try {
+                givenEmailExists = await this.isExistingEmail(modalInputEmail);
+            } catch (error) {
+                if (axios.isAxiosError(error)) {
+                    if (error.response) {
+                        // log error.response.status, error.response.data
+                    } else if (error.request) {
+                        // log error.request
+                    } else {
+                        // log error.message
+                    }
+                }
+                interaction.reply({ content: "System error. Please try again later.", flags: MessageFlags.Ephemeral });
+                return;
+            }
+
+
+
+            if (givenEmailExists && !emailDuplicate) {
                 this.distributeCode(interaction.user.id, modalInputEmail);
             } else if (emailDuplicate) {
                 this.invalidEmailHandling(interaction.user.id, `${interaction.user.id}_placeholder_email_address`);
@@ -256,7 +276,7 @@ export default class VerifierButtonManager extends ButtonManager {
         
         const res = await uwpscApiAxios.get("/users", {
             params: {email: modalInputEmail}
-        });
+        });     // throws error if applicable, the caller should handle it
 
         if (!(res.data.length != 0)) {
             return false;
@@ -316,9 +336,26 @@ export default class VerifierButtonManager extends ButtonManager {
 
         const email: string = (await this.getUserEmail(buttonInteraction.user.id))!;
 
-        const targetUser = (await uwpscApiAxios.get("/users", {
-            params: {email: email}
-        })).data[0];
+        let userRes;
+        try {
+            userRes = await uwpscApiAxios.get("/users", {
+                params: {email: email}
+            });
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                if (error.response) {
+                    // log error.response.status, error.response.data
+                } else if (error.request) {
+                    // log error.request
+                } else {
+                    // log error.message
+                }
+            }
+            buttonInteraction.followUp({ content: `**Verification failed**. System error. Please try again later`, flags: MessageFlags.Ephemeral });
+            return;
+        }
+
+        const targetUser = userRes.data[0];
 
         await Members.update(
             { 
@@ -343,15 +380,45 @@ export default class VerifierButtonManager extends ButtonManager {
         const currentSemesterId = currentSemesterConfigRes.dataValues.current_semester_id;
         const currentSemesterName = currentSemesterConfigRes.dataValues.current_semester_name;
 
-        const existingMembership = (await uwpscApiAxios.get("/memberships", {
-            params: {userId: userId, semesterId: currentSemesterId}
-        })).data[0];
+
+        let existingMembershipRes;
+        try {
+            existingMembershipRes = await uwpscApiAxios.get("/memberships", {
+                params: {userId: userId, semesterId: currentSemesterId}
+            });
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                if (error.response) {
+                    // log error.response.status, error.response.data
+                } else if (error.request) {
+                    // log error.request
+                } else {
+                    // log error.message
+                }
+            }
+            return;
+        }
+        const existingMembership = existingMembershipRes.data[0];
 
         let membershipId: string;
         if (existingMembership == undefined) {
-            const newMembership = (await uwpscApiAxios.post("/memberships", {
-                userId: userId, semesterId: currentSemesterId
-            }));
+            let newMembership;
+            try {
+                newMembership  = (await uwpscApiAxios.post("/memberships", {
+                    userId: userId, semesterId: currentSemesterId
+                }));
+            } catch (error) {
+                if (axios.isAxiosError(error)) {
+                    if (error.response) {
+                        // log error.response.status, error.response.data
+                    } else if (error.request) {
+                        // log error.request
+                    } else {
+                        // log error.message
+                    }
+                }
+                return;
+            }
             membershipId = newMembership.data.id;
         } else {
             membershipId = existingMembership.id;

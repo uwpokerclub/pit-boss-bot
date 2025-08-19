@@ -5,6 +5,7 @@ import Category from "../../base/enums/Category.js";
 import { uwpscApiAxios } from "../../base/utility/Axios.js";
 import { Configs } from "../../base/db/models/Configs.js";
 import { Members } from "../../base/db/models/Members.js";
+import axios from "axios";
 
 
 export default class Register extends Command {
@@ -64,15 +65,46 @@ export default class Register extends Command {
             await interaction.editReply({ content: `Processing...`, components: [] });
             
             if (buttonInteraction.customId == `confirmRegisterButton-${interaction.id}`) {
-                const existingMembership = (await uwpscApiAxios.get("/memberships", {
-                    params: {userId: userId, semesterId: currentSemesterId}
-                })).data[0];
+                let existingMembershipRes;
+                try {
+                    existingMembershipRes = await uwpscApiAxios.get("/memberships", {
+                        params: {userId: userId, semesterId: currentSemesterId}
+                    });
+                } catch (error) {
+                    if (axios.isAxiosError(error)) {
+                        if (error.response) {
+                            // log error.response.status, error.response.data
+                        } else if (error.request) {
+                            // log error.request
+                        } else {
+                            // log error.message
+                        }
+                    }
+                    interaction.reply({ content: "System error. Please try again later.", flags: MessageFlags.Ephemeral });
+                    return;
+                }
+                const existingMembership = existingMembershipRes.data[0];
 
                 let membershipId: string;
                 if (existingMembership == undefined) {
-                    const newMembership = (await uwpscApiAxios.post("/memberships", {
-                        userId: userId, semesterId: currentSemesterId
-                    }));
+                    let newMembership;
+                    try {
+                        newMembership = await uwpscApiAxios.post("/memberships", {
+                            userId: userId, semesterId: currentSemesterId
+                        });
+                    } catch (error) {
+                        if (axios.isAxiosError(error)) {
+                            if (error.response) {
+                                // log error.response.status, error.response.data
+                            } else if (error.request) {
+                                // log error.request
+                            } else {
+                                // log error.message
+                            }
+                        }
+                        interaction.reply({ content: "System error. Please try again later.", flags: MessageFlags.Ephemeral });
+                        return;
+                    }
                     membershipId = newMembership.data.id;
                 } else {
                     membershipId = existingMembership.id;

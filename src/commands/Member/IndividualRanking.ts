@@ -5,6 +5,7 @@ import Category from "../../base/enums/Category.js";
 import { Members } from "../../base/db/models/Members.js";
 import { uwpscApiAxios } from "../../base/utility/Axios.js";
 import { Configs } from "../../base/db/models/Configs.js";
+import axios from "axios";
 
 
 export default class IndividualRanking extends Command {
@@ -51,14 +52,47 @@ export default class IndividualRanking extends Command {
             return;
         }
 
-        const recordedMembershipSemesterId : string = (await uwpscApiAxios.get(`/memberships/${membershipId}`)).data.semesterId;
+        let membershipRes;
+        try {
+            membershipRes = await uwpscApiAxios.get(`/memberships/${membershipId}`);
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                if (error.response) {
+                    // log error.response.status, error.response.data
+                } else if (error.request) {
+                    // log error.request
+                } else {
+                    // log error.message
+                }
+            }
+            interaction.reply({ content: "System error. Please try again later.", flags: MessageFlags.Ephemeral });
+            return;
+        }
+
+        const recordedMembershipSemesterId : string = membershipRes.data.semesterId;
         if (recordedMembershipSemesterId != currentSemesterId) {
             interaction.reply({ content: "You have not registered for the current semester. Use `/register` to register.", flags: MessageFlags.Ephemeral });
             return;
         }
 
+        
+        let rankingRes;
+        try {
+            rankingRes = (await uwpscApiAxios.get(`/semesters/${currentSemesterId}/rankings/${membershipId}`));
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                if (error.response) {
+                    // log error.response.status, error.response.data
+                } else if (error.request) {
+                    // log error.request
+                } else {
+                    // log error.message
+                }
+            }
+            interaction.reply({ content: "System error. Please try again later.", flags: MessageFlags.Ephemeral });
+            return;
+        }
 
-        const rankingRes = (await uwpscApiAxios.get(`/semesters/${currentSemesterId}/rankings/${membershipId}`));
         if (rankingRes.status != 200) {
             // This would only run if the player registered for the current semester, but has yet to play an event
             interaction.reply({ content: "No records of your performance this term can be found.", flags: MessageFlags.Ephemeral });
@@ -69,12 +103,16 @@ export default class IndividualRanking extends Command {
         const position: string = rankingRes.data.position;
         const points: string = rankingRes.data.points;
         let color: ColorResolvable;
+        const colorGreen: ColorResolvable = [10, 149, 72];
+        const colorYellow: ColorResolvable = [229,162,103];
+        const colorRed: ColorResolvable = [163, 0, 0];
+
         if (parseInt(position) <= 100) {
-            color = [10, 149, 72];
+            color = colorGreen;
         } else if (parseInt(position) <= 120) {
-            color = [229,162,103];
+            color = colorYellow;
         } else {
-            color = [163, 0, 0];
+            color = colorRed;
         }
 
         const avatarUrl: string = interaction.user.displayAvatarURL();

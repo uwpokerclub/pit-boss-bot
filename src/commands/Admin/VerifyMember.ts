@@ -6,6 +6,7 @@ import { VerificationAttempts } from "../../base/db/models/VerificationAttempts.
 import { Members } from "../../base/db/models/Members.js";
 import { VerificationCodes } from "../../base/db/models/VerificationCodes.js";
 import { uwpscApiAxios } from "../../base/utility/Axios.js";
+import axios from "axios";
 
 
 
@@ -55,7 +56,24 @@ export default class VerifyMember extends Command {
             return;
         }
 
-        if (!(await this.isExistingEmail(emailParam))) {
+        let givenEmailExists;
+        try {
+            givenEmailExists = await this.isExistingEmail(emailParam);
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                if (error.response) {
+                    // log error.response.status, error.response.data
+                } else if (error.request) {
+                    // log error.request
+                } else {
+                    // log error.message
+                }
+            }
+            interaction.reply({ content: "System error. Please try again later.", flags: MessageFlags.Ephemeral });
+            return;
+        }
+
+        if (!givenEmailExists) {
             interaction.reply({ content: "Invalid email provided.", flags: MessageFlags.Ephemeral });
             return;
         }
@@ -70,9 +88,12 @@ export default class VerifyMember extends Command {
             interaction.reply({ content: "Verification failed. The given email has already been used by another member to verify their account." })
         }
 
-        await this.processSuccessfulVerification(interaction, targetUserClientId, emailParam);
+        if (await this.processSuccessfulVerification(interaction, targetUserClientId, emailParam)) {
+            interaction.reply({ content: `**Verification successful**. ${targetUserParam.user?.username} account is now linked to ${emailParam}!`, flags: MessageFlags.Ephemeral });
+        } else {
+            interaction.reply({ content: `**Verification failed**. System error. Please try again later.`, flags: MessageFlags.Ephemeral });
+        }
 
-        interaction.reply({ content: `**Verification successful**. ${targetUserParam.user?.username} account is now linked to ${emailParam}!`, flags: MessageFlags.Ephemeral });
     }
 
 
@@ -85,7 +106,8 @@ export default class VerifyMember extends Command {
         
         const res = await uwpscApiAxios.get("/users", {
             params: {email: modalInputEmail}
-        });
+        });     // error is handled by the caller
+
         return res.data.length != 0;
     }
 
@@ -101,14 +123,29 @@ export default class VerifyMember extends Command {
     }
 
     
-    private async processSuccessfulVerification(interaction: ChatInputCommandInteraction, targetMemberClientId: string, targetMemberEmail: string) {
+    private async processSuccessfulVerification(interaction: ChatInputCommandInteraction, targetMemberClientId: string, targetMemberEmail: string): Promise<boolean> {
         await VerificationCodes.destroy({where: {discord_client_id: targetMemberClientId}});
         await VerificationAttempts.destroy({where: {discord_client_id: targetMemberClientId}});
 
+        let userRes;
+        try {
+            userRes = await uwpscApiAxios.get("/users", {
+                params: {email: targetMemberEmail}
+            });
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                if (error.response) {
+                    // log error.response.status, error.response.data
+                } else if (error.request) {
+                    // log error.request
+                } else {
+                    // log error.message
+                }
+            }
+            return false;
+        }
 
-        const targetUser = (await uwpscApiAxios.get("/users", {
-            params: {email: targetMemberEmail}
-        })).data[0];
+        const targetUser = userRes.data[0];
 
         const memberEntry: Members | undefined = (await Members.findAll({
             where: {
@@ -135,6 +172,7 @@ export default class VerifyMember extends Command {
         }
 
         await this.assignVerifiedRole(targetMemberClientId, interaction);
+        return true;
     }
 
 
