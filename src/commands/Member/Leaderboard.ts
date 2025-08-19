@@ -4,6 +4,7 @@ import Command from "../../base/classes/Command.js";
 import Category from "../../base/enums/Category.js";
 import { uwpscApiAxios } from "../../base/utility/Axios.js";
 import { Configs } from "../../base/db/models/Configs.js";
+import axios from "axios";
 
 
 export default class Leaderboard extends Command {
@@ -41,7 +42,23 @@ export default class Leaderboard extends Command {
         const currentSemesterId = currentSemesterConfigRes.dataValues.current_semester_id;
         const currentSemesterName = currentSemesterConfigRes.dataValues.current_semester_name;
 
-        const rankingRes = (await uwpscApiAxios.get(`/semesters/${currentSemesterId}/rankings`));
+        
+        let rankingRes;
+        try {
+            rankingRes = (await uwpscApiAxios.get(`/semesters/${currentSemesterId}/rankings`));
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                if (error.response) {
+                    // log error.response.status, error.response.data
+                } else if (error.request) {
+                    // log error.request
+                } else {
+                    // log error.message
+                }
+            }
+            interaction.reply({ content: "System error. Please try again later.", flags: MessageFlags.Ephemeral });
+            return;
+        }
         const leaderboardLength: number = Math.min(rankingRes.data.length, 100);
 
         let pageNumber: number = 1;

@@ -43,16 +43,31 @@ export async function axiosInit() {
 
 
 async function login(): Promise<string> {
-    const res = await axios.post(config.uwpsc.apiUrl+"/session", 
-        {
-            "username": config.uwpsc.username,
-            "password": config.uwpsc.password
-        }, {
-            withCredentials: true
+    let loginRes;
+    try {
+        loginRes = await axios.post(config.uwpsc.apiUrl+"/session", 
+            {
+                "username": config.uwpsc.username,
+                "password": config.uwpsc.password
+            }, {
+                withCredentials: true
+            }
+        );
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            if (error.response) {
+                // log error.response.status, error.response.data
+            } else if (error.request) {
+                // log error.request
+            } else {
+                // log error.message
+            }
         }
-    );
+        throw error;
+    }
 
-    const cookie = (res.headers['set-cookie'] as string[])
+
+    const cookie = (loginRes.headers['set-cookie'] as string[])
     .find(cookie => cookie.includes(config.uwpsc.cookieName))
     ?.match(new RegExp(`^${config.uwpsc.cookieName}=(.+?);`))
     ?.[1];

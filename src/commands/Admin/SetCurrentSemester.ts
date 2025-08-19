@@ -3,6 +3,7 @@ import type BossClient from "../../base/classes/BossClient.js";
 import Command from "../../base/classes/Command.js"; import Category from "../../base/enums/Category.js";
 import { uwpscApiAxios } from "../../base/utility/Axios.js";
 import { Configs } from "../../base/db/models/Configs.js";
+import axios from "axios";
 
 export default class SetCurrentSemester extends Command {
     constructor(client: BossClient) {
@@ -21,11 +22,28 @@ export default class SetCurrentSemester extends Command {
     }
 
     override async execute(interaction: ChatInputCommandInteraction) {
-        const data = (await uwpscApiAxios.get("/semesters")).data;
-        const currentSemester = data[0];
+        let semesters = null;
+        try {
+            semesters = await uwpscApiAxios.get("/semesters");
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                if (error.response) {
+                    // log error.response.status, error.response.data
+                } else if (error.request) {
+                    // log error.request
+                } else {
+                    // log error.message
+                }
+            }
+            interaction.reply({ content: `System error. Cannot set current semester right now.`, flags: MessageFlags.Ephemeral });
+            return;
+        }
+
+
+        const currentSemester = semesters.data[0];
         if (!currentSemester) {
             // should never happen, unless the main db is dropped
-            interaction.reply({ content: `Cannot set current semester right now.`, flags: MessageFlags.Ephemeral });
+            interaction.reply({ content: `System error. Cannot set current semester right now.`, flags: MessageFlags.Ephemeral });
             return;
         }
         
