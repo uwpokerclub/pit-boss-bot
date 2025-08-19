@@ -8,11 +8,13 @@
     "clean": "rm -r dist",
     "build": "tsc --build",
     "start": "npm run clean && npm run build && node dist/src/scripts/deployCommands.js && node dist/src/index.js",
+    "startNoRegistration": "npm run clean && npm run build && node dist/src/index.js",
     "startNoClean": "npm run build && node dist/src/index.js",
 
-    "registerCommands": "",
-    "dbUp": "(cd dist/src/sqliteMigration; npx sequelize-cli db:migrate)",
-    "dbDown": "(cd dist/src/sqliteMigration; npx sequelize-cli db:migrate:undo)",
+    "registerCommands": "node dist/src/scripts/deployCommands.js",
+    "dbUp": "(cd ./sqliteMigration; npx sequelize-cli db:migrate)",
+    "dbDown": "(cd ./sqliteMigration; npx sequelize-cli db:migrate:undo)",
+    "createMigration": "(cd ./sqliteMigration; npx sequelize-cli migration:generate --name $NAME)",
 
     "cleanDB": "npm run build && node dist/src/devScripts/cleanDB.js",
     "populate": "npm run build && node dist/src/devScripts/populatePostgres.js"
