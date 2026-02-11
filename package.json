@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@getbrevo/brevo": "^3.0.1",
-    "axios": "^1.8.2",
+    "axios": "^1.13.5",
     "discord.js": "^14.18.0",
     "sequelize": "^6.37.5",
     "sqlite3": "^5.1.7"
