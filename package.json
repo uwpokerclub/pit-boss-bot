@@ -43,7 +43,7 @@
     "typescript-eslint": "^8.7.0"
   },
   "dependencies": {
-    "@getbrevo/brevo": "^3.0.1",
+    "@getbrevo/brevo": "^4.0.1",
     "axios": "^1.8.2",
     "discord.js": "^14.18.0",
     "sequelize": "^6.37.5",
