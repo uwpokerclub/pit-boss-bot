@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/uwpokerclub/pit-boss-bot#readme",
   "devDependencies": {
-    "@eslint/js": "^9.11.1",
+    "@eslint/js": "^10.0.1",
     "@types/eslint__js": "^8.42.3",
     "@types/eslint-config-prettier": "^6.11.3",
     "eslint": "^9.11.1",
