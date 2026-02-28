@@ -1,31 +1,17 @@
 ---
-name: Feature request
-about: Suggest an idea for this project
-title: ''
-labels: Type::Feature, work::Product Development
-assignees: ''
-
+name: Feature Request
+about: Suggest a new feature or improvement
+labels: enhancement
 ---
 
-## Description
-<!-- A clear and concise description of what the problem is. Ex. I'm always frustrated when [...] -->
+## Problem Statement
+A clear description of the problem this feature would solve.
 
 ## Proposed Solution
-<!-- A clear and concise description of what you want to happen. -->
+Describe the solution you'd like.
+
+## Alternatives Considered
+Describe any alternative solutions or features you've considered.
 
 ## Additional Context
-<!-- Any additional information you could provide that might help with development of the feature. -->
-
-<!-- This section is only for developers, do not include in your issue 
-
-## Approach
-
----
-
-### Blocks
-
-### Blocked By 
-
-### Related To
-
--->
+Add any other context, mockups, or screenshots about the feature request.
