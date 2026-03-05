@@ -6,6 +6,7 @@ const require = createRequire(import.meta.url);
 
 
 const config: IConfig = require(path.resolve("./config.json"));
+const userAgentValue: string = "UWPSC-Discord-Bot";
 
 let sessionCookie: string = "";
 export let uwpscApiAxios: AxiosInstance;
@@ -18,12 +19,13 @@ export async function axiosInit() {
         baseURL: config.uwpsc.apiUrl,
         withCredentials: true,
         headers: {
-            "User-Agent": "UWPSC-Discord-Bot"
+            "User-Agent": userAgentValue
         }
     });
 
 
     uwpscApiAxios.interceptors.request.use(axiosConfig => {
+        axiosConfig.headers['User-Agent'] = userAgentValue;
         axiosConfig.headers['Cookie'] = `${config.uwpsc.cookieName}=${sessionCookie}`;
         return axiosConfig;
     }, error => {
