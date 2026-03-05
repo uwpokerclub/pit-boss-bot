@@ -16,7 +16,10 @@ export async function axiosInit() {
 
     uwpscApiAxios = axios.create({
         baseURL: config.uwpsc.apiUrl,
-        withCredentials: true
+        withCredentials: true,
+        headers: {
+            "User-Agent": "UWPSC-Discord-Bot"
+        }
     });
 
 
