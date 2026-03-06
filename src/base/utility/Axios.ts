@@ -55,7 +55,10 @@ async function login(): Promise<string> {
                 "username": config.uwpsc.username,
                 "password": config.uwpsc.password
             }, {
-                withCredentials: true
+                withCredentials: true,
+                headers: {
+                    "User-Agent": userAgentValue
+                }
             }
         );
     } catch (error) {
