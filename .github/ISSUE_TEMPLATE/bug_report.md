@@ -1,33 +1,28 @@
 ---
-name: Bug report
-about: Report a bug you experienced with the bot.
-title: ''
-labels: type::Fix, work::Bug
-assignees: ''
-
+name: Bug Report
+about: Report a bug or unexpected behavior
+labels: bug
 ---
 
 ## Description
-<!-- A clear and concise description of what the problem is. -->
+A clear and concise description of the bug.
 
-## Steps To Reproduce
-1.
-2. 
-3. 
+## Steps to Reproduce
+1. Go to '...'
+2. Click on '...'
+3. Scroll down to '...'
+4. See error
 
-<details>
-<summary>Screenshots</summary>
-Replace me with any screenshots you might have of the bug occurring.
-</details>
+## Expected Behavior
+What you expected to happen.
 
-<!-- This section is for developers only. Please do not include in your issue.
+## Actual Behavior
+What actually happened.
 
-## Approach
+## Environment
+- Browser:
+- OS:
+- Version/Commit:
 
----
-
-### Blocks
-
-### Blocked By
-
-### Related To
+## Screenshots
+If applicable, add screenshots to help explain the problem.
