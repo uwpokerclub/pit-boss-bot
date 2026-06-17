@@ -3,33 +3,55 @@
   "version": "0.0.1",
   "description": "A Discord bot for the University Of Waterloo Poker Studies Club",
   "main": "dist/src/index.js",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uwpokerclub/pit-boss-bot.git"
+  },
+  "homepage": "https://github.com/uwpokerclub/pit-boss-bot#readme",
+  "bugs": {
+    "url": "https://github.com/uwpokerclub/pit-boss-bot/issues"
+  },
+  "author": "University of Waterloo Poker Studies Club Development Team (uwaterloopoker@gmail.com)",
+  "license": "Apache-2.0",
+
+  "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": ">=24.16.0",
+    "pnpm": "11.7.0",
+    "npm": "ERROR: use pnpm instead of npm",
+    "yarn": "ERROR: use pnpm instead of npm"
+  },
+  "//": "when pnpm-lock is present, 'engines' may be not be thoroughly checked in a non-prod environment",
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">=24.16.0",
+      "onFail": "error"
+    }
+  },
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rm -r dist",
     "build": "tsc --build",
     "start": "npm run clean && npm run build && node dist/src/scripts/deployCommands.js && node dist/src/index.js",
     "startNoRegistration": "npm run clean && npm run build && node dist/src/index.js",
     "startNoClean": "npm run build && node dist/src/index.js",
-
     "registerCommands": "node dist/src/scripts/deployCommands.js",
     "dbUp": "(cd ./sqliteMigration; npx sequelize-cli db:migrate)",
     "dbDown": "(cd ./sqliteMigration; npx sequelize-cli db:migrate:undo)",
     "createMigration": "(cd ./sqliteMigration; npx sequelize-cli migration:generate --name $NAME)",
-
     "cleanDB": "npm run build && node dist/src/devScripts/cleanDB.js",
     "populate": "npm run build && node dist/src/devScripts/populatePostgres.js"
   },
-  "type": "module",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/uwpokerclub/pit-boss-bot.git"
+  "dependencies": {
+    "@getbrevo/brevo": "^3.0.1",
+    "axios": "^1.8.2",
+    "discord.js": "^14.18.0",
+    "sequelize": "^6.37.5",
+    "sqlite3": "^5.1.7"
   },
-  "author": "University of Waterloo Poker Studies Club Development Team (uwaterloopoker@gmail.com)",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/uwpokerclub/pit-boss-bot/issues"
-  },
-  "homepage": "https://github.com/uwpokerclub/pit-boss-bot#readme",
   "devDependencies": {
     "@eslint/js": "^9.11.1",
     "@types/eslint__js": "^8.42.3",
@@ -41,12 +63,5 @@
     "sequelize-cli": "^6.6.3",
     "typescript": "^5.6.2",
     "typescript-eslint": "^8.7.0"
-  },
-  "dependencies": {
-    "@getbrevo/brevo": "^3.0.1",
-    "axios": "^1.8.2",
-    "discord.js": "^14.18.0",
-    "sequelize": "^6.37.5",
-    "sqlite3": "^5.1.7"
   }
 }
