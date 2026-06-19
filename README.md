@@ -1,5 +1,7 @@
 # pit-boss-bot
 
+This README is a barebone introduction to the project. 
+For a more details documentation / user guide, check out our [wiki](https://docs.google.com/document/d/1iQ3AwXNbjHzVjEtStLmfdjfbHZxHTd5ptACyEhKtjdQ/edit?usp=sharing)!
 
 ## Table of Contents
 - [Installation](#installation)
@@ -15,8 +17,7 @@
 Before starting development or usage of the bot, ensure you have all of the prerequisite softwares installed below.
 
 ### Prerequisites
-- [NodeJS](https://nodejs.org/en/)
-- [TypeScript](https://www.typescriptlang.org)
+- [NodeJS v24.16.0](https://nodejs.org/en/)
 
 
 ### Clone the repository
@@ -94,6 +95,18 @@ Navigate to the `Campaigns` menu from your dashboard, then into the `Templates` 
 
 ## Development
 
+We use the package manager pnpm exclusively. To use the correct pnpm version run the following command:
+```sh
+corepack enable
+```
+Now, you can install the necessary dependencies
+```sh
+pnpm install
+```
+There may be some packages (such as sqlite3) that requires local assembly on your machine. You will have to approve builds for these packages with:
+```sh
+pnpm approve-builds
+````
 
 ### Building
 ```sh
