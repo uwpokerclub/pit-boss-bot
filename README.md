@@ -81,9 +81,9 @@ Contact an admin / contributor of the project for the template url and paste it 
 Navigate to the `Campaigns` menu from your dashboard, then into the `Templates` submenu. Find the template you just imported, and copy the number after `#` under the name of the template.
 
 ### UWPSC api
-**_Note: You will also need to have the [API server](https://github.com/uwpokerclub/api) running locally as well._**
+**_Note: You will also need to have the [API server](https://github.com/uwpokerclub/website/tree/master/server) running locally as well._**
 
-**uwpsc.uwpsc.apiUrl:** where the api is hosted.\
+**uwpsc.uwpsc.apiUrl:** where the api is hosted, **including the `/api/v2` path prefix** — for example `http://localhost:8080/api/v2`. The bot speaks v2 only; pointing this at the legacy `/api` routes will fail, because v1 returns bare arrays where v2 returns `{ data, total }`.\
 **cookieName:** the name of the authentication cookie. Likely going to be one of `uwpsc-session-id` or `uwpsc-dev-session-id`.\
 **uwpsc.username & uwpsc.password:** login credentials.
 
