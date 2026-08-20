@@ -2,7 +2,8 @@ import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatIn
 import type BossClient from "../../base/classes/BossClient.js";
 import Command from "../../base/classes/Command.js";
 import Category from "../../base/enums/Category.js";
-import { uwpscApiAxios } from "../../base/utility/Axios.js";
+import { createMembership, findMembership } from "../../base/api/uwpsc.js";
+import type { Membership, MembershipWithAttendance } from "../../base/api/types.js";
 import { Configs } from "../../base/db/models/Configs.js";
 import { Members } from "../../base/db/models/Members.js";
 import axios from "axios";
@@ -35,7 +36,9 @@ export default class Register extends Command {
         }
 
         const clientId: string = interaction.user.id;
-        const userId = (await Members.findAll({ where: { discord_client_id: clientId } }))[0]?.dataValues.user_id;
+        const memberRecord = (await Members.findAll({ where: { discord_client_id: clientId } }))[0];
+        const userId = memberRecord?.dataValues.user_id;
+        const email = memberRecord?.dataValues.email;
         const currentSemesterConfigRes = (await Configs.findAll())[0];
         if (!currentSemesterConfigRes) {
             interaction.reply({ content: "Cannot register at the moment, please try again later.", flags: MessageFlags.Ephemeral });
@@ -65,11 +68,9 @@ export default class Register extends Command {
             await interaction.editReply({ content: `Processing...`, components: [] });
             
             if (buttonInteraction.customId == `confirmRegisterButton-${interaction.id}`) {
-                let existingMembershipRes;
+                let existingMembership: MembershipWithAttendance | null = null;
                 try {
-                    existingMembershipRes = await uwpscApiAxios.get("/memberships", {
-                        params: {userId: userId, semesterId: currentSemesterId}
-                    });
+                    existingMembership = await findMembership(currentSemesterId, email, userId);
                 } catch (error) {
                     if (axios.isAxiosError(error)) {
                         if (error.response) {
@@ -83,15 +84,12 @@ export default class Register extends Command {
                     interaction.reply({ content: "System error. Please try again later.", flags: MessageFlags.Ephemeral });
                     return;
                 }
-                const existingMembership = existingMembershipRes.data[0];
 
                 let membershipId: string;
                 if (existingMembership == undefined) {
-                    let newMembership;
+                    let newMembership: Membership | null = null;
                     try {
-                        newMembership = await uwpscApiAxios.post("/memberships", {
-                            userId: userId, semesterId: currentSemesterId
-                        });
+                        newMembership = await createMembership(currentSemesterId, userId);
                     } catch (error) {
                         if (axios.isAxiosError(error)) {
                             if (error.response) {
@@ -105,7 +103,7 @@ export default class Register extends Command {
                         interaction.reply({ content: "System error. Please try again later.", flags: MessageFlags.Ephemeral });
                         return;
                     }
-                    membershipId = newMembership.data.id;
+                    membershipId = newMembership.id;
                 } else {
                     membershipId = existingMembership.id;
                 }
