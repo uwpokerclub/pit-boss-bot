@@ -5,7 +5,8 @@ import Category from "../../base/enums/Category.js";
 import { VerificationAttempts } from "../../base/db/models/VerificationAttempts.js";
 import { Members } from "../../base/db/models/Members.js";
 import { VerificationCodes } from "../../base/db/models/VerificationCodes.js";
-import { uwpscApiAxios } from "../../base/utility/Axios.js";
+import { findMemberByEmail } from "../../base/api/uwpsc.js";
+import type { Member } from "../../base/api/types.js";
 import axios from "axios";
 
 
@@ -104,11 +105,9 @@ export default class VerifyMember extends Command {
             return false;
         }
         
-        const res = await uwpscApiAxios.get("/users", {
-            params: {email: modalInputEmail}
-        });     // error is handled by the caller
+        const member = await findMemberByEmail(modalInputEmail);     // error is handled by the caller
 
-        return res.data.length != 0;
+        return member !== null;
     }
 
 
@@ -127,11 +126,9 @@ export default class VerifyMember extends Command {
         await VerificationCodes.destroy({where: {discord_client_id: targetMemberClientId}});
         await VerificationAttempts.destroy({where: {discord_client_id: targetMemberClientId}});
 
-        let userRes;
+        let targetUser: Member | null = null;
         try {
-            userRes = await uwpscApiAxios.get("/users", {
-                params: {email: targetMemberEmail}
-            });
+            targetUser = await findMemberByEmail(targetMemberEmail);
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 if (error.response) {
@@ -145,7 +142,9 @@ export default class VerifyMember extends Command {
             return false;
         }
 
-        const targetUser = userRes.data[0];
+        if (targetUser === null) {
+            return false;
+        }
 
         const memberEntry: Members | undefined = (await Members.findAll({
             where: {
