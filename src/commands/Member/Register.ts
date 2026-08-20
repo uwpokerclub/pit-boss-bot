@@ -39,6 +39,11 @@ export default class Register extends Command {
         const memberRecord = (await Members.findAll({ where: { discord_client_id: clientId } }))[0];
         const userId = memberRecord?.dataValues.user_id;
         const email = memberRecord?.dataValues.email;
+        if (userId === undefined || email === undefined) {
+            interaction.reply({ content: "Something went wrong. Please `/logout` and re-verify your account again, or contact an admin for help.", flags: MessageFlags.Ephemeral });
+            return;
+        }
+
         const currentSemesterConfigRes = (await Configs.findAll())[0];
         if (!currentSemesterConfigRes) {
             interaction.reply({ content: "Cannot register at the moment, please try again later.", flags: MessageFlags.Ephemeral });
