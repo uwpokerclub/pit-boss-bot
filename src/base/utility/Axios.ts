@@ -1,4 +1,4 @@
-import axios, { type AxiosInstance } from "axios";
+import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from "axios";
 import type IConfig from "../interfaces/IConfig.js";
 import path from "node:path";
 import { createRequire } from "node:module";
@@ -11,6 +11,7 @@ const userAgentValue: string = "UWPSC-Discord-Bot";
 let sessionCookie: string = "";
 export let uwpscApiAxios: AxiosInstance;
 
+type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
 export async function axiosInit() {
     sessionCookie = await login();
@@ -36,13 +37,19 @@ export async function axiosInit() {
     uwpscApiAxios.interceptors.response.use(response => {
         return response;
     }, async error => {
-        if (error.response.status == 401 && !error.config._retry) {
-            error.config._retry = true;
-            
-            sessionCookie = await login();
-            return await uwpscApiAxios(error.config);
+        if (!axios.isAxiosError(error)) {
+            return Promise.reject(error);
         }
-        return error;
+
+        const failedConfig = error.config as RetriableConfig | undefined;
+        if (error.response?.status == 401 && failedConfig && !failedConfig._retry) {
+            failedConfig._retry = true;
+
+            sessionCookie = await login();
+            return await uwpscApiAxios(failedConfig);
+        }
+
+        return Promise.reject(error);
     });
 }
 
