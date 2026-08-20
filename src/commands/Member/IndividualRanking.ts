@@ -3,7 +3,8 @@ import type BossClient from "../../base/classes/BossClient.js";
 import Command from "../../base/classes/Command.js";
 import Category from "../../base/enums/Category.js";
 import { Members } from "../../base/db/models/Members.js";
-import { uwpscApiAxios } from "../../base/utility/Axios.js";
+import { getMembership, getRanking } from "../../base/api/uwpsc.js";
+import type { GetRankingResponse, Membership } from "../../base/api/types.js";
 import { Configs } from "../../base/db/models/Configs.js";
 import axios from "axios";
 
@@ -52,9 +53,9 @@ export default class IndividualRanking extends Command {
             return;
         }
 
-        let membershipRes;
+        let membership: Membership | null = null;
         try {
-            membershipRes = await uwpscApiAxios.get(`/memberships/${membershipId}`);
+            membership = await getMembership(currentSemesterId, membershipId);
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 if (error.response) {
@@ -69,16 +70,15 @@ export default class IndividualRanking extends Command {
             return;
         }
 
-        const recordedMembershipSemesterId : string = membershipRes.data.semesterId;
-        if (recordedMembershipSemesterId != currentSemesterId) {
+        if (membership === null) {
             interaction.reply({ content: "You have not registered for the current semester. Use `/register` to register.", flags: MessageFlags.Ephemeral });
             return;
         }
 
-        
-        let rankingRes;
+
+        let ranking: GetRankingResponse | null = null;
         try {
-            rankingRes = (await uwpscApiAxios.get(`/semesters/${currentSemesterId}/rankings/${membershipId}`));
+            ranking = await getRanking(currentSemesterId, membershipId);
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 if (error.response) {
@@ -93,23 +93,23 @@ export default class IndividualRanking extends Command {
             return;
         }
 
-        if (rankingRes.status != 200) {
+        if (ranking === null) {
             // This would only run if the player registered for the current semester, but has yet to play an event
             interaction.reply({ content: "No records of your performance this term can be found.", flags: MessageFlags.Ephemeral });
             return;
         }
 
         const currentSemesterName = currentSemesterConfigRes.dataValues.current_semester_name;
-        const position: string = rankingRes.data.position;
-        const points: string = rankingRes.data.points;
+        const position: number = ranking.position;
+        const points: number = ranking.points;
         let color: ColorResolvable;
         const colorGreen: ColorResolvable = [10, 149, 72];
         const colorYellow: ColorResolvable = [229,162,103];
         const colorRed: ColorResolvable = [163, 0, 0];
 
-        if (parseInt(position) <= 100) {
+        if (position <= 100) {
             color = colorGreen;
-        } else if (parseInt(position) <= 120) {
+        } else if (position <= 120) {
             color = colorYellow;
         } else {
             color = colorRed;
