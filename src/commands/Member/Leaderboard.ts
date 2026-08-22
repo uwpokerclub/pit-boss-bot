@@ -95,8 +95,8 @@ export default class Leaderboard extends Command {
         let points: string = "";
         const startIndex = (pageNumber - 1) * this.pageSizeDesktop;
         const endIndex = Math.min(startIndex + this.pageSizeDesktop, leaderboardLength);
-        for (const [offset, entry] of data.slice(startIndex, endIndex).entries()) {
-            positions += `${startIndex + offset + 1}\n`;
+        for (const entry of data.slice(startIndex, endIndex)) {
+            positions += `${entry.position}\n`;
             names += `${entry.firstName} ${entry.lastName}\n`;
             points += `${entry.points}\n`;
         }
@@ -124,8 +124,8 @@ export default class Leaderboard extends Command {
         } else {
             const startIndex = (pageNumber - 1) * this.pageSizeMobile;
             const endIndex = Math.min(startIndex + this.pageSizeMobile, leaderboardLength);
-            for (const [offset, entry] of data.slice(startIndex, endIndex).entries()) {
-                rankingEmbed.addFields({ name: `${startIndex + offset + 1}`, value: `${entry.firstName} ${entry.lastName} ---- ${entry.points}`});
+            for (const entry of data.slice(startIndex, endIndex)) {
+                rankingEmbed.addFields({ name: `${entry.position}`, value: `${entry.firstName} ${entry.lastName} ---- ${entry.points}`});
             }
         }
         
