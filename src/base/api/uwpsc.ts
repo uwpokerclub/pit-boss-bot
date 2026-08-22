@@ -10,23 +10,19 @@ import type {
     Semester,
 } from "./types.js";
 
-
 function isNotFound(error: unknown): boolean {
     return axios.isAxiosError(error) && error.response?.status === 404;
 }
 
-
 function sameEmail(a: string, b: string): boolean {
     return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
-
 
 // Ordered by start date descending, so element 0 is the newest semester.
 export async function listSemesters(): Promise<Semester[]> {
     const res = await uwpscApiAxios.get<ListResponse<Semester>>("/semesters");
     return res.data.data;
 }
-
 
 // The API's email filter is a partial ILIKE match, so the result is
 // re-filtered here for an exact (case-insensitive) match.
@@ -36,7 +32,6 @@ export async function findMemberByEmail(email: string): Promise<Member | null> {
     });
     return res.data.data.find(member => sameEmail(member.email, email)) ?? null;
 }
-
 
 // Returns null when no such membership exists in that semester. The endpoint
 // is semester-scoped, so a membership from a different semester is a 404.
@@ -57,7 +52,6 @@ export async function getMembership(
     }
 }
 
-
 // The v2 memberships endpoint has no userId filter, so this queries by email
 // (a partial ILIKE match) and narrows to the exact user client-side.
 export async function findMembership(
@@ -72,7 +66,6 @@ export async function findMembership(
     return res.data.data.find(membership => membership.userId === userId) ?? null;
 }
 
-
 // paid/discounted are sent explicitly: the API rejects paid=false with
 // discounted=true, and an unpaid membership is what the bot has always created.
 export async function createMembership(
@@ -86,7 +79,6 @@ export async function createMembership(
     return res.data;
 }
 
-
 // Capped at 100 entries by the API's max page size.
 export async function listRankings(semesterId: string): Promise<RankingResponse[]> {
     const res = await uwpscApiAxios.get<ListResponse<RankingResponse>>(
@@ -94,7 +86,6 @@ export async function listRankings(semesterId: string): Promise<RankingResponse[
     );
     return res.data.data;
 }
-
 
 // Returns null when the member has registered but has not played an event yet.
 export async function getRanking(
