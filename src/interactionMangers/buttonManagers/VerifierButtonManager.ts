@@ -63,7 +63,7 @@ export default class VerifierButtonManager extends ButtonManager {
                         // log error.message
                     }
                 }
-                interaction.reply({ content: "System error. Please try again later.", flags: MessageFlags.Ephemeral });
+                interaction.followUp({ content: "System error. Please try again later.", flags: MessageFlags.Ephemeral });
                 return;
             }
 
