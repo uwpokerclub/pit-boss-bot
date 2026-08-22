@@ -1,7 +1,8 @@
 import { ChatInputCommandInteraction, MessageFlags, PermissionFlagsBits, TextChannel } from "discord.js";
 import type BossClient from "../../base/classes/BossClient.js";
 import Command from "../../base/classes/Command.js"; import Category from "../../base/enums/Category.js";
-import { uwpscApiAxios } from "../../base/utility/Axios.js";
+import { listSemesters } from "../../base/api/uwpsc.js";
+import type { Semester } from "../../base/api/types.js";
 import { Configs } from "../../base/db/models/Configs.js";
 import axios from "axios";
 
@@ -22,9 +23,9 @@ export default class SetCurrentSemester extends Command {
     }
 
     override async execute(interaction: ChatInputCommandInteraction) {
-        let semesters = null;
+        let semesters: Semester[] = [];
         try {
-            semesters = await uwpscApiAxios.get("/semesters");
+            semesters = await listSemesters();
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 if (error.response) {
@@ -40,7 +41,7 @@ export default class SetCurrentSemester extends Command {
         }
 
 
-        const currentSemester = semesters.data[0];
+        const currentSemester = semesters[0];
         if (!currentSemester) {
             // should never happen, unless the main db is dropped
             interaction.reply({ content: `System error. Cannot set current semester right now.`, flags: MessageFlags.Ephemeral });

@@ -2,7 +2,8 @@ import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatIn
 import type BossClient from "../../base/classes/BossClient.js";
 import Command from "../../base/classes/Command.js";
 import Category from "../../base/enums/Category.js";
-import { uwpscApiAxios } from "../../base/utility/Axios.js";
+import { listRankings } from "../../base/api/uwpsc.js";
+import type { RankingResponse } from "../../base/api/types.js";
 import { Configs } from "../../base/db/models/Configs.js";
 import axios from "axios";
 
@@ -43,9 +44,9 @@ export default class Leaderboard extends Command {
         const currentSemesterName = currentSemesterConfigRes.dataValues.current_semester_name;
 
         
-        let rankingRes;
+        let rankings: RankingResponse[] = [];
         try {
-            rankingRes = (await uwpscApiAxios.get(`/semesters/${currentSemesterId}/rankings`));
+            rankings = await listRankings(currentSemesterId);
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 if (error.response) {
@@ -59,11 +60,11 @@ export default class Leaderboard extends Command {
             interaction.reply({ content: "System error. Please try again later.", flags: MessageFlags.Ephemeral });
             return;
         }
-        const leaderboardLength: number = Math.min(rankingRes.data.length, 100);
+        const leaderboardLength: number = Math.min(rankings.length, 100);
 
         let pageNumber: number = 1;
         let mobileMode: boolean = true;
-        const rankingEmbed = this.getUpdatedRankingEmbed(rankingRes.data, pageNumber, currentSemesterName, leaderboardLength, mobileMode);
+        const rankingEmbed = this.getUpdatedRankingEmbed(rankings, pageNumber, currentSemesterName, leaderboardLength, mobileMode);
         const buttonRow = this.getUpdatedRankingButtonRow(interaction.id, pageNumber, leaderboardLength, mobileMode);
 
         const response = await interaction.reply({ components: [buttonRow], embeds: [rankingEmbed], flags: MessageFlags.Ephemeral });
@@ -80,7 +81,7 @@ export default class Leaderboard extends Command {
                 return;
             }
 
-            const rankingEmbed = this.getUpdatedRankingEmbed(rankingRes.data, pageNumber, currentSemesterName, leaderboardLength, mobileMode);
+            const rankingEmbed = this.getUpdatedRankingEmbed(rankings, pageNumber, currentSemesterName, leaderboardLength, mobileMode);
             const buttonRow = this.getUpdatedRankingButtonRow(interaction.id, pageNumber, leaderboardLength, mobileMode);
             await buttonInteraction.update({ components: [buttonRow], embeds: [rankingEmbed] });
         
@@ -88,21 +89,22 @@ export default class Leaderboard extends Command {
     }
 
 
-    private getLeaderboardDesktopPage(data: any, pageNumber: number, leaderboardLength: number): {positions: string, names: string, points: string} {
+    private getLeaderboardDesktopPage(data: RankingResponse[], pageNumber: number, leaderboardLength: number): {positions: string, names: string, points: string} {
         let positions: string = "";
         let names: string = "";
         let points: string = "";
         const startIndex = (pageNumber - 1) * this.pageSizeDesktop;
-        for (let i=startIndex; i<startIndex + Math.min(leaderboardLength - startIndex, this.pageSizeDesktop); i++) {
-            positions += `${i+1}\n`;
-            names += `${data[i].firstName} ${data[i].lastName}\n`;
-            points += `${data[i].points}\n`;
+        const endIndex = Math.min(startIndex + this.pageSizeDesktop, leaderboardLength);
+        for (const entry of data.slice(startIndex, endIndex)) {
+            positions += `${entry.position}\n`;
+            names += `${entry.firstName} ${entry.lastName}\n`;
+            points += `${entry.points}\n`;
         }
         return {positions: positions, names: names, points: points};
     }
 
 
-    private getUpdatedRankingEmbed(data: any, pageNumber: number, currentSemesterName: string, leaderboardLength: number, mobileMode: boolean): EmbedBuilder {
+    private getUpdatedRankingEmbed(data: RankingResponse[], pageNumber: number, currentSemesterName: string, leaderboardLength: number, mobileMode: boolean): EmbedBuilder {
         const easternNowTimeString: string = new Date().toLocaleString("en-US", { timeZone: "America/Toronto" })
         const now: Date = new Date(easternNowTimeString);
         const calendarDate: string = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()} Eastern Time`;
@@ -121,8 +123,9 @@ export default class Leaderboard extends Command {
             );
         } else {
             const startIndex = (pageNumber - 1) * this.pageSizeMobile;
-            for (let i=startIndex; i<startIndex + Math.min(leaderboardLength - startIndex, this.pageSizeMobile); i++) {
-                rankingEmbed.addFields({ name: `${i+1}`, value: `${data[i].firstName} ${data[i].lastName} ---- ${data[i].points}`});
+            const endIndex = Math.min(startIndex + this.pageSizeMobile, leaderboardLength);
+            for (const entry of data.slice(startIndex, endIndex)) {
+                rankingEmbed.addFields({ name: `${entry.position}`, value: `${entry.firstName} ${entry.lastName} ---- ${entry.points}`});
             }
         }
         

@@ -1,7 +1,8 @@
 import { ActionRowBuilder, ButtonInteraction, ModalSubmitInteraction, GuildMember, GuildMemberRoleManager, MessageFlags, ModalBuilder, Role, TextInputBuilder, TextInputStyle } from "discord.js";
 import type BossClient from "../../base/classes/BossClient.js";
 import ButtonManager from "../../base/classes/ButtonManager.js";
-import { uwpscApiAxios } from "../../base/utility/Axios.js";
+import { createMembership, findMemberByEmail, findMembership } from "../../base/api/uwpsc.js";
+import type { Member, Membership, MembershipWithAttendance } from "../../base/api/types.js";
 import { Members } from "../../base/db/models/Members.js";
 import { VerificationCodes } from "../../base/db/models/VerificationCodes.js";
 import { VerificationAttempts } from "../../base/db/models/VerificationAttempts.js";
@@ -274,16 +275,9 @@ export default class VerifierButtonManager extends ButtonManager {
             return false;
         }
         
-        const res = await uwpscApiAxios.get("/users", {
-            params: {email: modalInputEmail}
-        });     // throws error if applicable, the caller should handle it
+        const member = await findMemberByEmail(modalInputEmail);     // throws error if applicable, the caller should handle it
 
-        if (!(res.data.length != 0)) {
-            return false;
-        }
-        return true;
-        
-
+        return member !== null;
     }
 
     private async isDuplicateEmail(modalInputEmail: string): Promise<boolean> {
@@ -336,11 +330,9 @@ export default class VerifierButtonManager extends ButtonManager {
 
         const email: string = (await this.getUserEmail(buttonInteraction.user.id))!;
 
-        let userRes;
+        let targetUser: Member | null = null;
         try {
-            userRes = await uwpscApiAxios.get("/users", {
-                params: {email: email}
-            });
+            targetUser = await findMemberByEmail(email);
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 if (error.response) {
@@ -355,7 +347,10 @@ export default class VerifierButtonManager extends ButtonManager {
             return;
         }
 
-        const targetUser = userRes.data[0];
+        if (targetUser === null) {
+            buttonInteraction.followUp({ content: `**Verification failed**. System error. Please try again later`, flags: MessageFlags.Ephemeral });
+            return;
+        }
 
         await Members.update(
             { 
@@ -367,10 +362,10 @@ export default class VerifierButtonManager extends ButtonManager {
         this.assignVerifiedRole(buttonInteraction);
         buttonInteraction.followUp({ content: `**Verification successful**. Your discord account is now linked to ${email}!`, flags: MessageFlags.Ephemeral });
         
-        await this.currentSemesterRegistration(buttonInteraction, targetUser.id);
+        await this.currentSemesterRegistration(buttonInteraction, targetUser.id, email);
     }
 
-    private async currentSemesterRegistration(buttonInteraction: ButtonInteraction, userId: number) {
+    private async currentSemesterRegistration(buttonInteraction: ButtonInteraction, userId: number, email: string) {
         const currentSemesterConfigRes = (await Configs.findAll())[0];
         if (!currentSemesterConfigRes) {
             buttonInteraction.followUp({ content: "Cannot register to the current semester at the moment. Please use `/register` later.", flags: MessageFlags.Ephemeral });
@@ -381,11 +376,9 @@ export default class VerifierButtonManager extends ButtonManager {
         const currentSemesterName = currentSemesterConfigRes.dataValues.current_semester_name;
 
 
-        let existingMembershipRes;
+        let existingMembership: MembershipWithAttendance | null = null;
         try {
-            existingMembershipRes = await uwpscApiAxios.get("/memberships", {
-                params: {userId: userId, semesterId: currentSemesterId}
-            });
+            existingMembership = await findMembership(currentSemesterId, email, userId);
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 if (error.response) {
@@ -398,15 +391,12 @@ export default class VerifierButtonManager extends ButtonManager {
             }
             return;
         }
-        const existingMembership = existingMembershipRes.data[0];
 
         let membershipId: string;
         if (existingMembership == undefined) {
-            let newMembership;
+            let newMembership: Membership | null = null;
             try {
-                newMembership  = (await uwpscApiAxios.post("/memberships", {
-                    userId: userId, semesterId: currentSemesterId
-                }));
+                newMembership = await createMembership(currentSemesterId, userId);
             } catch (error) {
                 if (axios.isAxiosError(error)) {
                     if (error.response) {
@@ -419,7 +409,7 @@ export default class VerifierButtonManager extends ButtonManager {
                 }
                 return;
             }
-            membershipId = newMembership.data.id;
+            membershipId = newMembership.id;
         } else {
             membershipId = existingMembership.id;
         }
