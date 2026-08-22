@@ -86,7 +86,8 @@ export default class VerifyMember extends Command {
             return;
         }
         if (await this.isDuplicateEmail(emailParam)) {
-            interaction.reply({ content: "Verification failed. The given email has already been used by another member to verify their account." })
+            interaction.reply({ content: "Verification failed. The given email has already been used by another member to verify their account.", flags: MessageFlags.Ephemeral });
+            return;
         }
 
         if (await this.processSuccessfulVerification(interaction, targetUserClientId, emailParam)) {
